@@ -20,6 +20,8 @@ use Omeka\Entity\AbstractEntity;
  *
  * @todo Remove column hits_identified (= hits - hits_anonymous)?
  *
+ * @todo Use ascii, not unicode for some columns. See Comment/Statistics.
+ *
  * @Entity
  * @Table(
  *     uniqueConstraints={
