@@ -12,6 +12,7 @@ use Laminas\EventManager\Event;
 use Laminas\EventManager\SharedEventManagerInterface;
 use Laminas\ModuleManager\ModuleManager;
 use Laminas\Mvc\MvcEvent;
+use Laminas\ServiceManager\ServiceLocatorInterface;
 use Laminas\View\Renderer\PhpRenderer;
 use Omeka\Api\Representation\AbstractResourceRepresentation;
 use Omeka\Module\AbstractModule;
@@ -35,6 +36,47 @@ class Module extends AbstractModule
         require_once __DIR__ . '/vendor/autoload.php';
     }
 
+    public function install(ServiceLocatorInterface $services): void
+    {
+        $this->setServiceLocator($services);
+
+        $this->preInstall();
+
+        // The module Analytics was split from the module Statistics, so the
+        // tables "hit" and "stat" may already exist with data. In that case,
+        // check the structure and reuse them instead of failing.
+        $sqlFile = $this->modulePath() . '/data/install/schema.sql';
+        if ($this->checkExistingTablesFromStatistics()) {
+            // Tables exist with the right structure: skip creation.
+            $messenger = $services->get('ControllerPluginManager')->get('messenger');
+            $message = new PsrMessage(
+                'The tables from the module Statistics were found and will be reused by the module Analytics.' // @translate
+            );
+            $messenger->addNotice($message);
+        } else {
+            // Standard install: check and create tables.
+            if (!$this->checkNewTablesFromFile($sqlFile)) {
+                $message = new PsrMessage(
+                    'This module cannot install its tables, because they exist already. Try to remove them first.' // @translate
+                );
+                $messenger = $services->get('ControllerPluginManager')->get('messenger');
+                $messenger->addError($message);
+                throw new \Omeka\Module\Exception\ModuleCannotInstallException(
+                    (string) $services->get('ControllerPluginManager')->get('translate')('Missing requirement. Unable to install.') // @translate
+                );
+            }
+            $this->execSqlFromFile($sqlFile);
+        }
+
+        $this
+            ->installAllResources()
+            ->manageConfig('install')
+            ->manageMainSettings('install')
+            ->manageSiteSettings('install')
+            ->manageUserSettings('install')
+            ->postInstall();
+    }
+
     protected function preInstall(): void
     {
         $services = $this->getServiceLocator();
@@ -47,6 +89,49 @@ class Module extends AbstractModule
             );
             throw new \Omeka\Module\Exception\ModuleCannotInstallException((string) $message);
         }
+    }
+
+    /**
+     * Check if the tables "hit" and "stat" already exist with the expected
+     * columns, meaning they were created by the module Statistics before the
+     * split.
+     */
+    protected function checkExistingTablesFromStatistics(): bool
+    {
+        /** @var \Doctrine\DBAL\Connection $connection */
+        $connection = $this->getServiceLocator()->get('Omeka\Connection');
+
+        $tables = $connection->executeQuery('SHOW TABLES;')->fetchFirstColumn();
+        if (!in_array('hit', $tables) || !in_array('stat', $tables)) {
+            return false;
+        }
+
+        // Check that the tables contain data (empty tables are handled by the
+        // standard install process).
+        $hasHitData = $connection->executeQuery('SELECT 1 FROM `hit` LIMIT 1;')->fetchOne();
+        $hasStatData = $connection->executeQuery('SELECT 1 FROM `stat` LIMIT 1;')->fetchOne();
+        if ($hasHitData === false && $hasStatData === false) {
+            return false;
+        }
+
+        // Verify the expected columns exist.
+        $hitColumns = $connection->executeQuery('SHOW COLUMNS FROM `hit`;')->fetchAllAssociativeIndexed();
+        $expectedHitColumns = ['id', 'url', 'entity_id', 'entity_name', 'site_id', 'user_id', 'ip', 'query', 'referrer', 'user_agent', 'accept_language', 'created'];
+        foreach ($expectedHitColumns as $col) {
+            if (!isset($hitColumns[$col])) {
+                return false;
+            }
+        }
+
+        $statColumns = $connection->executeQuery('SHOW COLUMNS FROM `stat`;')->fetchAllAssociativeIndexed();
+        $expectedStatColumns = ['id', 'type', 'url', 'entity_id', 'entity_name', 'hits', 'hits_anonymous', 'hits_identified', 'created', 'modified'];
+        foreach ($expectedStatColumns as $col) {
+            if (!isset($statColumns[$col])) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     protected function postInstall(): void
@@ -463,7 +548,7 @@ class Module extends AbstractModule
         $hasAccessRule = strpos($htaccess, $accessMarker) !== false;
         $moduleManager = $services->get('Omeka\ModuleManager');
         $accessModule = $moduleManager->getModule('Access');
-        $isAccessActive = $accessModule && $accessModule->getState() === \Omeka\Module\Module::STATE_ACTIVE;
+        $isAccessActive = $accessModule && $accessModule->getState() === \Omeka\Module\Manager::STATE_ACTIVE;
 
         // Parse existing rule to find currently tracked types.
         $currentTypes = [];
