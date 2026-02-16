@@ -1,0 +1,40 @@
+{
+    "name": "daniel-km/omeka-s-module-analytics",
+    "description": "Module for Omeka S that adds analytics about viewed pages.",
+    "type": "library",
+    "license": "CECILL-2.1",
+    "authors": [
+        {
+            "name": "Daniel Berthereau",
+            "email": "Daniel.git@Berthereau.net"
+        }
+    ],
+    "homepage": "https://gitlab.com/Daniel-KM/Omeka-S-module-Analytics",
+    "support": {
+        "issues": "https://gitlab.com/Daniel-KM/Omeka-S-module-Analytics/-/issues",
+        "forum": "https://forum.omeka.org/"
+    },
+    "keywords": [
+        "Omeka S",
+        "module",
+        "admin",
+        "analytics"
+    ],
+    "require": {
+        "openspout/openspout": "^3.7"
+    },
+    "autoload": {
+        "psr-4": {
+            "Analytics\\": "src/"
+        }
+    },
+    "config": {
+        "platform": {
+            "php": "7.4"
+        },
+        "allow-plugins": {
+            "composer/installers": true,
+            "oomphinc/composer-installers-extender": true
+        }
+    }
+}

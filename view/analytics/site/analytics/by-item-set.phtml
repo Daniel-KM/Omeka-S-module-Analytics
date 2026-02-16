@@ -1,0 +1,81 @@
+<?php
+/**
+ * @var \Laminas\View\Renderer\PhpRenderer $this
+ * @var \Analytics\Form\AnalyticsByItemSetForm $form
+ * @var array $results
+ * @var string $type "item-set"
+ * @var array $hits
+ * @var int[] $years
+ * @var int $yearFilter
+ * @var int $monthFilter
+ */
+
+$plugins = $this->getHelperPluginManager();
+$api = $plugins->get('api');
+$assetUrl = $plugins->get('assetUrl');
+$translate = $plugins->get('translate');
+$urlHelper = $plugins->get('url');
+$escapeAttr = $plugins->get('escapeHtmlAttr');
+
+$this->headLink()->prependStylesheet($assetUrl('css/analytics.css', 'Analytics'));
+
+$this->htmlElement('body')->appendAttribute('class', 'statistics browse');
+
+$isAdminRequest = $this->status()->isAdminRequest();
+
+$currentUrl = $urlHelper(null, [], true);
+$currentQuery = $this->params()->fromQuery();
+$currentQueryNoSort = $currentQuery;
+unset($currentQueryNoSort['sort_by']);
+
+$submit = $form->get('submit');
+$form->remove('submit');
+
+$form->prepare();
+?>
+
+<?= $this->pageTitle($translate('By item set'), 1, $isAdminRequest ? $translate('Analytics') : null) ?>
+
+<?= $this->partial('common/analytics-nav') ?>
+
+<?= $this->form($form) ?>
+
+<div id="page-actions">
+    <?= $this->formButton($submit) ?>
+</div>
+
+<?php if (count($results)): ?>
+
+<table class="tablesaw statistics-table" data-tablesaw-mode="stack">
+    <thead>
+        <tr>
+            <th>
+                <a href="<?= $escapeAttr($currentUrl . '?' . http_build_query($currentQueryNoSort + ['sort_by' => 'item-set'], '', '&', PHP_QUERY_RFC3986)) ?>"><?= $translate('Item set') ?></a>
+            </th>
+            <th>
+                <a href="<?= $escapeAttr($currentUrl . '?' . http_build_query($currentQueryNoSort + ['sort_by' => 'hits'], '', '&', PHP_QUERY_RFC3986)) ?>"><?= $translate('Hits') ?></a>
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+<?php foreach ($results as /* $position => */ $result): ?>
+        <tr class="statistics-stat">
+            <td class="statistics-field"><?= $result['item-set'] ?></td>
+            <td class="statistics-hits"><?= $result['hits'] ?></td>
+        </tr>
+<?php endforeach; ?>
+    </tbody>
+</table>
+
+<?php else: ?>
+
+    <br class="clear" />
+    <?php $totalHits = $api->search('hits', ['limit' => 0])->getTotalResults(); ?>
+    <?php if (!$totalHits): ?>
+        <h2><?= $translate('There is no hit yet.') ?></h2>
+    <?php else: ?>
+        <p><?= sprintf($translate('The query searched %s hits and returned no results.'), $totalHits) ?></p>
+        <p><a href="<?= $urlHelper('admin/analytics/default', ['action' => 'by-item-set'], true) ?>"><?= $translate('See all analytics.') ?></a></p>
+    <?php endif; ?>
+
+<?php endif; ?>

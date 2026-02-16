@@ -1,0 +1,247 @@
+<?php
+/**
+ * @var \Laminas\View\Renderer\PhpRenderer $this
+ * @var \Analytics\Form\AnalyticsByDownloadForm|\Analytics\Form\AnalyticsByResourceForm $form
+ * @var array $headers
+ * @var array $table
+ * @var string $userStatus
+ * @var string $type
+ *
+ * @todo Add the basePath to the hit url.
+ */
+
+/** @var \Common\Stdlib\EasyMeta $easyMeta */
+
+$plugins = $this->getHelperPluginManager();
+$api = $plugins->get('api');
+$escape = $plugins->get('escapeHtml');
+$assetUrl = $plugins->get('assetUrl');
+$translate = $plugins->get('translate');
+$hyperlink = $plugins->get('hyperlink');
+$urlHelper = $plugins->get('url');
+$easyMeta = $plugins->get('easyMeta')();
+$escapeAttr = $plugins->get('escapeHtmlAttr');
+
+$this->headLink()->prependStylesheet($assetUrl('css/analytics.css', 'Analytics'));
+
+$this->htmlElement('body')->appendAttribute('class', 'statistics browse');
+
+$isAdminRequest = $this->status()->isAdminRequest();
+
+$totalResults = $this->pagination()->getPaginator()->getTotalCount();
+$currentUrl = $urlHelper(null, [], true);
+$basePath = $this->basePath();
+$query = $this->params()->fromQuery();
+$queryNoSort = $query;
+unset($queryNoSort['sort_by']);
+
+$submit = $form->get('submit');
+$form->remove('submit');
+
+$form->prepare();
+
+$baseResourceUrl = $urlHelper($isAdminRequest ? 'admin' : 'site', [], true);
+$resourceToControllers = [
+    'items' => 'item',
+    'item_sets' => 'item-set',
+    'media' => 'media',
+    'site_pages' => 'page',
+];
+?>
+
+<?= $this->pageTitle(sprintf($translate('Analytics (%s total)'), $totalResults), 1, $isAdminRequest ? $translate('Analytics') : null) ?>
+
+<?= $this->partial('common/analytics-nav') ?>
+
+<?= $this->form($form) ?>
+
+<div id="page-actions">
+    <?= $this->formButton($submit) ?>
+</div>
+
+<?php if ($table): ?>
+
+<div class="browse-controls">
+    <?= $pagination = $this->pagination() ?>
+    <?php //= $this->sortSelector($sortHeadings) ?>
+    <div class="statistics-export">
+        <?= $hyperlink($translate('ODS'), $urlHelper('admin/analytics/default/output', ['output' => 'ods'], ['query' => $query], true)) ?>
+        <?= $hyperlink($translate('TSV'), $urlHelper('admin/analytics/default/output', ['output' => 'tsv'], ['query' => $query], true)) ?>
+        <?= $hyperlink($translate('CSV'), $urlHelper('admin/analytics/default/output', ['output' => 'csv'], ['query' => $query], true)) ?>
+    </div>
+</div>
+
+<table class="tablesaw statistics-table" data-tablesaw-mode="stack">
+    <thead>
+        <tr>
+            <?php foreach ($headers as $header => $label): switch ($header):
+                case 'url': ?>
+            <th>
+                <a href="<?= $escapeAttr($currentUrl . '?' . http_build_query($queryNoSort + ['sort_by' => 'url'], '', '&', PHP_QUERY_RFC3986)) ?>"><?= $translate($label) ?></a>
+            </th>
+            <?php break;
+                case 'hits': ?>
+            <th>
+                <a href="<?= $escapeAttr($currentUrl . '?' . http_build_query($queryNoSort + ['sort_by' => 'hits'], '', '&', PHP_QUERY_RFC3986)) ?>"><?= $translate($label) ?></a>
+            </th>
+            <?php break;
+                case 'hits_anonymous': ?>
+            <th>
+                <a href="<?= $escapeAttr($currentUrl . '?' . http_build_query($queryNoSort + ['sort_by' => 'hits_anonymous'], '', '&', PHP_QUERY_RFC3986)) ?>"><?= $translate($label) ?></a>
+            </th>
+            <?php break;
+                case 'hits_identified': ?>
+            <th>
+                <a href="<?= $escapeAttr($currentUrl . '?' . http_build_query($queryNoSort + ['sort_by' => 'hits_identified'], '', '&', PHP_QUERY_RFC3986)) ?>"><?= $translate($label) ?></a>
+            </th>
+            <?php break;
+                case 'resource': ?>
+            <th>
+                <a href="<?= $escapeAttr($currentUrl . '?' . http_build_query($queryNoSort + ['sort_by' => 'resource'], '', '&', PHP_QUERY_RFC3986)) ?>"><?= $translate($label) ?></a>
+            </th>
+            <?php break;
+                case 'entity_name': ?>
+            <th>
+                <a href="<?= $escapeAttr($currentUrl . '?' . http_build_query($queryNoSort + ['sort_by' => 'entity_name'], '', '&', PHP_QUERY_RFC3986)) ?>"><?= $translate($label) ?></a>
+            </th>
+            <?php break;
+                case 'resource_class_id': ?>
+            <th>
+                <a href="<?= $escapeAttr($currentUrl . '?' . http_build_query($queryNoSort + ['sort_by' => 'resource_class_id'], '', '&', PHP_QUERY_RFC3986)) ?>"><?= $translate($label) ?></a>
+            </th>
+            <?php break;
+                case 'resource_template_id': ?>
+            <th>
+                <a href="<?= $escapeAttr($currentUrl . '?' . http_build_query($queryNoSort + ['sort_by' => 'resource_template_id'], '', '&', PHP_QUERY_RFC3986)) ?>"><?= $translate($label) ?></a>
+            </th>
+            <?php break;
+                case 'item_sets': ?>
+            <th>
+                <span><?= $translate($label) ?></span>
+            </th>
+            <?php break;
+                case 'media_type': ?>
+            <th>
+                <a href="<?= $escapeAttr($currentUrl . '?' . http_build_query($queryNoSort + ['sort_by' => 'media_type'], '', '&', PHP_QUERY_RFC3986)) ?>"><?= $translate($label) ?></a>
+            </th>
+            <?php break;
+                case 'date': ?>
+            <th>
+                <a href="<?= $escapeAttr($currentUrl . '?' . http_build_query($queryNoSort + ['sort_by' => 'created'], '', '&', PHP_QUERY_RFC3986)) ?>"><?= $translate($label) ?></a>
+            </th>
+            <?php endswitch; endforeach; ?>
+        </tr>
+    </thead>
+    <tbody>
+        <?php foreach ($table as $row): ?>
+        <tr class="statistics-stat">
+            <?php foreach (array_keys($headers) as $header): switch ($header):
+                case 'url': ?>
+            <td class="statistics-url">
+                <div class="statistics-hover">
+                    <a href="<?= $escapeAttr($basePath . $row['url']) ?>"><?= $escape($row['url']) ?></a>
+                </div>
+            </td>
+            <?php break;
+                case 'hits': ?>
+            <td class="statistics-hits">
+                <?= (int) $row['hits'] ?>
+            </td>
+            <?php break;
+                case 'hits_anonymous': ?>
+            <td class="statistics-hits stats-anonymous">
+                <?= (int) ($row['hits_anonymous']) ?>
+            </td>
+            <?php break;
+                case 'hits_identified': ?>
+            <td class="statistics-hits stats-identified">
+                <?= (int) $row['hits_identified'] ?>
+            </td>
+            <?php break;
+                case 'resource':
+                    $entityName = strtok($row['resource'], '/');
+                    $entityId = (int) strtok('/'); ?>
+            <td class="statistics-resource">
+                <div class="statistics-hover">
+                <?php if (!empty($row['available'])): ?>
+                    <?php if ($entityName === 'site_pages'): ?>
+                    <span><?= $escape($row['title'] ?: $translate('[no title]')) ?></span>
+                    <span>[<?= '#' . $entityId ?>]</span>
+                    <?php else: ?>
+                    <a href="<?= $escapeAttr(sprintf('%s/%s/%s', $baseResourceUrl, $resourceToControllers[$entityName] ?? $entityName, $entityId)) ?>"><?= $escape($row['title'] ?: $translate('[no title]')) ?></a>
+                    <?php endif; ?>
+                <?php elseif ($entityName): ?>
+                    <?= sprintf('%s #%d', $entityName, $entityId) ?>
+                <?php endif; ?>
+                </div>
+            </td>
+            <?php break;
+                case 'entity_name': ?>
+            <td class="statistics-record-type">
+                <?= $translate($easyMeta->resourceLabel($row['entity_name'])) ?>
+            </td>
+            <?php break;
+                case 'resource_class_id': ?>
+            <td class="statistics-resource-class">
+                <?= $easyMeta->resourceClassTerm($row['resource_class_id']) ?>
+            </td>
+            <?php break;
+                case 'resource_template_id': ?>
+            <td class="statistics-resource-template">
+                <?= $easyMeta->resourceTemplateLabel($row['resource_template_id']) ?>
+            </td>
+            <?php break;
+                case 'item_sets': ?>
+            <td class="statistics-item-set">
+                <?php // TODO The item may be removed or private. The item set too.
+                $entityName = array_key_exists('entity_name', $row) ? $row['entity_name'] : (array_key_exists('resource', $row) ? strtok($row['resource'], '/') : null);
+                if ($entityName === 'items' && !empty($row['item_sets'])):
+                    $itemSets = array_combine(explode(',', $row['item_sets']), explode(chr(31), $row['item_sets_title'])); ?>
+                    <ul>
+                        <?php foreach ($itemSets as $itemSetId => $itemSetTitle): ?>
+                        <li>
+                            <a href="<?= $escapeAttr($baseResourceUrl . '/item-set/' . $itemSetId) ?>"><?= $escape($itemSetTitle) ?></a>
+                        </li>
+                        <?php endforeach; ?>
+                    </ul>
+                <?php endif; ?>
+            </td>
+            <?php break;
+                case 'media_type': ?>
+            <td class="statistics-media-type">
+                <?= $row['media_type'] ?>
+            </td>
+            <?php break;
+                case 'date': ?>
+            <td>
+                <?= $escape((new \DateTime($row['date']))->format('Y-m-d H:i:s')) ?>
+            </td>
+            <?php break;
+                default:
+            endswitch; endforeach; ?>
+        </tr>
+        <?php endforeach; ?>
+    </tbody>
+</table>
+
+<div class="browse-controls">
+    <?= $pagination ?>
+</div>
+
+<?php else: ?>
+
+<div class="browse-controls">
+</div>
+
+<?php $totalStats = $api->search('hits', ['limit' => 0])->getTotalResults(); ?>
+<br class="clear" />
+<div class="no-resources">
+<?php if (!$totalStats): ?>
+    <p><?= $translate('Omeka could not find any statistics.') ?></p>
+<?php else: ?>
+    <p><?= sprintf($translate('The query searched %s rows and returned no results.'), $totalStats) ?></p>
+    <p><a href="<?= $urlHelper('admin/analytics/default', ['action' => 'by-' . $type], true) ?>"><?= $translate('See all analytics.') ?></a></p>
+<?php endif; ?>
+</div>
+
+<?php endif; ?>
