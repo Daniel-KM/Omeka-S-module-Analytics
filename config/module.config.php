@@ -201,6 +201,11 @@ return [
     ],
     'analytics' => [
         'settings' => [
+            // Types of files tracked via .htaccess. Empty means not managed by the module.
+            'analytics_htaccess_types' => [],
+            // Custom file paths to track (for DerivativeMedia, etc.).
+            'analytics_htaccess_custom_types' => '',
+
             // Privacy settings.
             'analytics_privacy' => 'anonymous',
             'analytics_include_bots' => false,

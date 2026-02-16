@@ -22,6 +22,39 @@ class SettingsFieldset extends Fieldset
             ->setAttribute('id', 'analytics')
             ->setOption('element_groups', $this->elementGroups)
             ->add([
+                'name' => 'analytics_htaccess_types',
+                'type' => Element\MultiCheckbox::class,
+                'options' => [
+                    'element_group' => 'analytics',
+                    'label' => 'File types to track downloads via .htaccess', // @translate
+                    'info' => 'Select the file types that should be tracked by an Apache rewrite rule in the root .htaccess. The rule redirects direct file access through the download controller to count downloads. When the module Access is active with its own rule, the download rule is unnecessary because Access calls Analytics directly.', // @translate
+                    'value_options' => [
+                        'original' => 'original', // @translate
+                        'large' => 'large', // @translate
+                        'medium' => 'medium', // @translate
+                        'square' => 'square', // @translate
+                    ],
+                ],
+                'attributes' => [
+                    'id' => 'analytics_htaccess_types',
+                    'required' => false,
+                ],
+            ])
+            ->add([
+                'name' => 'analytics_htaccess_custom_types',
+                'type' => Element\Text::class,
+                'options' => [
+                    'element_group' => 'analytics',
+                    'label' => 'Custom file paths to track via .htaccess', // @translate
+                    'info' => 'Additional file subdirectories to track, for example for the module DerivativeMedia (mp3, mp4, etc.). Separate paths with spaces.', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'analytics_htaccess_custom_types',
+                    'placeholder' => 'mp3 mp4 webm ogg pdf',
+                ],
+            ])
+
+            ->add([
                 'name' => 'analytics_privacy',
                 'type' => Element\Radio::class,
                 'options' => [
