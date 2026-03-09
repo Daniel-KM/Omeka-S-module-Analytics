@@ -33,12 +33,18 @@ if (!method_exists($this, 'checkModuleActiveVersion') || !$this->checkModuleActi
     throw new \Omeka\Module\Exception\ModuleCannotInstallException((string) $translate('Missing requirement. Unable to upgrade.')); // @translate
 }
 
+$hasError = false;
+
 if (PHP_VERSION_ID < 80100) {
     $message = new \Omeka\Stdlib\Message(
         $translate('The module %1$s requires PHP %2$s or later.'), // @translate
         'Analytics', '8.1'
     );
     $messenger->addError($message);
+    $hasError = true;
+}
+
+if ($hasError) {
     throw new \Omeka\Module\Exception\ModuleCannotInstallException((string) $translate('Missing requirement. Unable to upgrade.')); // @translate
 }
 

@@ -3,7 +3,9 @@
 namespace Analytics;
 
 if (!class_exists('Common\TraitModule', false)) {
-    require_once dirname(__DIR__) . '/Common/TraitModule.php';
+    require_once file_exists(dirname(__DIR__) . '/Common/src/TraitModule.php')
+        ? dirname(__DIR__) . '/Common/src/TraitModule.php'
+        : dirname(__DIR__) . '/Common/TraitModule.php';
 }
 
 use Common\Stdlib\PsrMessage;
@@ -97,7 +99,11 @@ class Module extends AbstractModule
                 $translate('The module %1$s should be upgraded to version %2$s or later.'), // @translate
                 'Common', '3.4.81'
             );
-            throw new \Omeka\Module\Exception\ModuleCannotInstallException((string) $message);
+            $errors[] = (string) $message;
+        }
+
+        if ($errors) {
+            throw new \Omeka\Module\Exception\ModuleCannotInstallException(implode("\n", $errors));
         }
     }
 
@@ -595,10 +601,7 @@ class Module extends AbstractModule
             $settings->set('analytics_htaccess_custom_types', implode(' ', $customCurrent));
 
             if ($isAccessActive && $hasAccessRule) {
-                $message = new PsrMessage(
-                    'The module Access is active with its own .htaccess rule. The download tracking rule is not needed because Access calls Analytics directly.' // @translate
-                );
-                $messenger->addSuccess($message);
+                // No message: Access handles downloads directly.
             } elseif ($hasLegacyRule) {
                 $message = new PsrMessage(
                     'A legacy .htaccess rule tracks file types "{types}" but is not managed by the module. Save the settings to convert it to the managed format.', // @translate
@@ -636,10 +639,6 @@ class Module extends AbstractModule
                 }
             }
             $settings->set('analytics_htaccess_types', $types);
-            $message = new PsrMessage(
-                'The module Access is active with its own .htaccess rule. The download tracking rule is not needed.' // @translate
-            );
-            $messenger->addSuccess($message);
             return;
         }
 
