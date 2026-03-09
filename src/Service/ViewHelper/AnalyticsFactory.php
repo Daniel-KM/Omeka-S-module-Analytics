@@ -8,7 +8,7 @@ use Analytics\View\Helper\Analytics;
 
 class AnalyticsFactory implements FactoryInterface
 {
-    public function __invoke(ContainerInterface $services, $name, array $options = null)
+    public function __invoke(ContainerInterface $services, $name, ?array $options = null)
     {
         $apiAdapters = $services->get('Omeka\ApiAdapterManager');
         return new Analytics(
