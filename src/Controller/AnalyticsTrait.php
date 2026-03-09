@@ -3,7 +3,10 @@
 namespace Analytics\Controller;
 
 use Common\Stdlib\PsrMessage;
-use OpenSpout\Writer\Common\Creator\WriterEntityFactory;
+use OpenSpout\Common\Entity\Cell\StringCell;
+use OpenSpout\Common\Entity\Row;
+use OpenSpout\Writer\CSV\Writer as CsvWriter;
+use OpenSpout\Writer\ODS\Writer as OdsWriter;
 
 trait AnalyticsTrait
 {
@@ -193,7 +196,7 @@ trait AnalyticsTrait
 
         switch ($output) {
             case 'csv':
-                $writer = WriterEntityFactory::createCSVWriter();
+                $writer = new CsvWriter();
                 $writer
                     ->setFieldDelimiter(',')
                     ->setFieldEnclosure('"')
@@ -204,7 +207,7 @@ trait AnalyticsTrait
                     ->setShouldAddBOM(true);
                 break;
             case 'tsv':
-                $writer = WriterEntityFactory::createCSVWriter();
+                $writer = new CsvWriter();
                 $writer
                     ->setFieldDelimiter("\t")
                     // Unlike import, chr(0) cannot be used, because it's output.
@@ -221,11 +224,11 @@ trait AnalyticsTrait
                     ->setShouldAddBOM(true);
                 break;
             case 'ods':
-                $writer = WriterEntityFactory::createODSWriter();
+                $writer = new OdsWriter();
                 break;
             case 'xlsx':
                 /*
-                 $writer = WriterEntityFactory::createXLSXWriter();
+                 $writer = new \OpenSpout\Writer\XLSX\Writer();
                  break;
                  */
             default:
@@ -248,12 +251,12 @@ trait AnalyticsTrait
             $header = $translate($header);
         }
         unset($header);
-        $rowFromValues = WriterEntityFactory::createRowFromArray($headers);
+        $rowFromValues = new Row(array_map(fn($v) => new StringCell((string) ($v ?? ''), null), $headers));
         $writer->addRow($rowFromValues);
 
         // Output rows.
         foreach ($table as $row) {
-            $rowFromValues = WriterEntityFactory::createRowFromArray($row);
+            $rowFromValues = new Row(array_map(fn($v) => new StringCell((string) ($v ?? ''), null), $row));
             $writer->addRow($rowFromValues);
         }
 
