@@ -1096,9 +1096,12 @@ class HitAdapter extends AbstractEntityAdapter
      */
     public function getClientIp(): string
     {
-        // Some servers add the real ip.
-        $ip = $_SERVER['HTTP_X_REAL_IP']
+        // Support reverse proxies: X-Forwarded-For may contain
+        // multiple IPs (client, proxy1, proxy2).
+        $ip = $_SERVER['HTTP_X_FORWARDED_FOR']
+            ?? $_SERVER['HTTP_X_REAL_IP']
             ?? $_SERVER['REMOTE_ADDR'];
+        $ip = trim(strtok(trim($ip), ','));
         if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)
             || filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6)
         ) {
