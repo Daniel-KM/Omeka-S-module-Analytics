@@ -10,7 +10,7 @@ use Omeka\Api\Request;
 class MvcListeners extends AbstractListenerAggregate
 {
     /**
-     * @var \Interop\Container\ContainerInterface
+     * @var \Psr\Container\ContainerInterface
      */
     protected $services;
 

@@ -2,7 +2,7 @@
 
 namespace Analytics\Mvc\Controller\Plugin;
 
-use Interop\Container\ContainerInterface;
+use Psr\Container\ContainerInterface;
 use Laminas\Mvc\Controller\Plugin\AbstractPlugin;
 use Omeka\Api\Request;
 use Analytics\Entity\Hit;
@@ -15,7 +15,7 @@ use Analytics\Entity\Hit;
 class LogCurrentUrl extends AbstractPlugin
 {
     /**
-     * @var \Interop\Container\ContainerInterface
+     * @var \Psr\Container\ContainerInterface
      */
     protected $services;
 

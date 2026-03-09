@@ -2,7 +2,7 @@
 
 namespace Analytics\Service\ControllerPlugin;
 
-use Interop\Container\ContainerInterface;
+use Psr\Container\ContainerInterface;
 use Laminas\ServiceManager\Factory\FactoryInterface;
 use Analytics\Mvc\Controller\Plugin\LogCurrentUrl;
 
