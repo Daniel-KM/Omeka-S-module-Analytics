@@ -83,3 +83,12 @@ if (version_compare((string) $oldVersion, '3.4.12', '<')) {
     );
     $messenger->addNotice($message);
 }
+
+if (version_compare($oldVersion, '3.4.14', '<')) {
+    $siteSettings = $services->get('Omeka\Settings\Site');
+    $siteIds = $api->search('sites', [], ['returnScalar' => 'id'])->getContent();
+    foreach ($siteIds as $siteId) {
+        $siteSettings->setTargetId($siteId);
+        $siteSettings->set('analytics_placement', ['after/items', 'after/media', 'after/item_sets']);
+    }
+}
