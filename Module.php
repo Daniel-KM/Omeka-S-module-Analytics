@@ -573,41 +573,18 @@ class Module extends AbstractModule
             return;
         }
 
-        $marker = '# Module Analytics: count downloads.';
-        $accessMarker = '# Module Access: protect files.';
+        $manager = new \Analytics\Stdlib\HtaccessManager();
         $isWriteMode = $types !== null;
-        $knownStandardTypes = ['original', 'large', 'medium', 'square'];
+        $standard = \Analytics\Stdlib\HtaccessManager::STANDARD_TYPES;
 
-        // Detect Access-managed rule and the file types it covers. These types
-        // are logged via the Analytics MvcListener when Access dispatches the
-        // access-file route, so they don't need an Analytics rewrite rule.
-        $accessTypes = [];
-        if (preg_match('/' . preg_quote($accessMarker, '/') . '\s*\n(?:\s*#[^\n]*\n)*\s*RewriteRule\s+"\^files\/\(([^)]+)\)\//', $htaccess, $m)) {
-            $accessTypes = explode('|', $m[1]);
-        }
-
-        // Parse existing Analytics rule to find currently tracked types.
-        $currentTypes = [];
-        $hasMarker = strpos($htaccess, $marker) !== false;
+        $accessTypes = $manager->parseAccessTypes($htaccess);
+        $currentTypes = $manager->parseManagedAnalyticsTypes($htaccess);
+        $hasMarker = $currentTypes !== [] || strpos($htaccess, \Analytics\Stdlib\HtaccessManager::MARKER) !== false;
         $hasLegacyRule = false;
-        if ($hasMarker) {
-            if (preg_match('/' . preg_quote($marker, '/') . '\s*\n(?:\s*#[^\n]*\n)*\s*RewriteRule\s+"\^files\/\(([^)]+)\)\//', $htaccess, $matches)) {
-                $currentTypes = explode('|', $matches[1]);
-            }
-        } else {
-            // Detect legacy rules (without marker) that redirect to
-            // /download/files/.
-            if (preg_match_all('/^\s*RewriteRule\s+.*files\/\(([^)]+)\).*\/download\/files\//m', $htaccess, $matches)) {
-                foreach ($matches[1] as $group) {
-                    $currentTypes = array_merge($currentTypes, explode('|', $group));
-                }
-                $hasLegacyRule = true;
-            }
-            if (preg_match_all('/^\s*RewriteRule\s+["\^]*files\/(' . implode('|', $knownStandardTypes) . ')\/.*\/download\/files\//m', $htaccess, $matches)) {
-                $currentTypes = array_merge($currentTypes, $matches[1]);
-                $hasLegacyRule = true;
-            }
-            $currentTypes = array_values(array_unique(array_intersect($currentTypes, $knownStandardTypes)));
+        if (!$hasMarker) {
+            $legacy = $manager->parseLegacyAnalyticsTypes($htaccess);
+            $currentTypes = $legacy['types'];
+            $hasLegacyRule = $legacy['found'];
         }
 
         // Read mode: sync setting from .htaccess state and display problems
@@ -615,8 +592,8 @@ class Module extends AbstractModule
         // every Settings page render.
         if (!$isWriteMode) {
             $effectiveCurrent = array_values(array_unique(array_merge($currentTypes, $accessTypes)));
-            $standardCurrent = array_values(array_intersect($effectiveCurrent, $knownStandardTypes));
-            $customCurrent = array_values(array_diff($currentTypes, $knownStandardTypes));
+            $standardCurrent = array_values(array_intersect($effectiveCurrent, $standard));
+            $customCurrent = array_values(array_diff($currentTypes, $standard));
             $settings->set('analytics_htaccess_types', $standardCurrent);
             $settings->set('analytics_htaccess_custom_types', implode(' ', $customCurrent));
 
@@ -626,7 +603,7 @@ class Module extends AbstractModule
                     ['types' => implode(', ', $currentTypes)]
                 ));
             } elseif (empty($effectiveCurrent)) {
-                $exampleRule = $marker . "\n" . '# This rule is automatically managed by the module.' . "\n" . 'RewriteRule "^files/(original)/(.*)$" "download/files/$1/$2" [NC,L]';
+                $exampleRule = $manager->buildBlock(['original']);
                 $message = new PsrMessage(
                     'No .htaccess rule is set to track downloads. To count file downloads, add the following lines in the file .htaccess at the root of Omeka, just after "RewriteEngine On":{line_break}{rule}', // @translate
                     [
@@ -646,17 +623,9 @@ class Module extends AbstractModule
         $customTypes = array_filter($customTypes, fn ($v) => preg_match('/^[a-zA-Z0-9][-a-zA-Z0-9]*$/', $v));
         $requestedTypes = array_values(array_unique(array_merge($types, $customTypes)));
 
-        // Drop types already handled by the Access rule: Apache routes them to
-        // /access/files/, dispatched and logged via the Analytics MvcListener.
-        $analyticsTypes = array_values(array_diff($requestedTypes, $accessTypes));
-        $absorbed = array_values(array_intersect($requestedTypes, $accessTypes));
-
-        // Build the new block (or empty if no remaining types).
-        $newBlock = '';
-        if (!empty($analyticsTypes)) {
-            $typesPattern = implode('|', $analyticsTypes);
-            $newBlock = $marker . "\n" . '# This rule is automatically managed by the module.' . "\n" . 'RewriteRule "^files/(' . $typesPattern . ')/(.*)$" "download/files/$1/$2" [NC,L]';
-        }
+        $analyticsTypes = $manager->computeAnalyticsTypes($requestedTypes, $accessTypes);
+        $absorbed = $manager->computeAbsorbedTypes($requestedTypes, $accessTypes);
+        $newBlock = $manager->buildBlock($analyticsTypes);
 
         // Nothing changed: same types and already in managed format.
         $sortedCurrent = $currentTypes;
@@ -683,32 +652,13 @@ class Module extends AbstractModule
             } else {
                 $messenger->addWarning(new PsrMessage(
                     'The file .htaccess is not writable. Remove the lines starting with "{marker}" manually from the file .htaccess at the root of Omeka.', // @translate
-                    ['marker' => $marker]
+                    ['marker' => \Analytics\Stdlib\HtaccessManager::MARKER]
                 ));
             }
             return;
         }
 
-        // Remove existing marker block if present.
-        if ($hasMarker) {
-            $htaccess = preg_replace('/' . preg_quote($marker, '/') . '\s*\n(?:\s*#[^\n]*\n)*\s*RewriteRule\s+"[^"]*"\s+"[^"]*"\s+\[[^\]]*\]\s*\n?/', '', $htaccess);
-        }
-
-        // Remove legacy rules (without marker) that redirect to
-        // /download/files/.
-        if ($hasLegacyRule) {
-            $htaccess = preg_replace('/^\s*RewriteRule\s+.*files\/\([^)]+\).*\/download\/files\/.*\n?/m', '', $htaccess);
-            $htaccess = preg_replace('/^\s*RewriteRule\s+.*files\/(' . implode('|', $knownStandardTypes) . ')\/.*\/download\/files\/.*\n?/m', '', $htaccess);
-        }
-
-        // Insert new block after "RewriteEngine On" if remaining types.
-        if (!empty($newBlock)) {
-            if (preg_match('/RewriteEngine\s+On\s*\n/', $htaccess, $m, PREG_OFFSET_CAPTURE)) {
-                $insertPos = $m[0][1] + strlen($m[0][0]);
-                $htaccess = substr_replace($htaccess, "\n" . $newBlock . "\n\n", $insertPos, 0);
-            }
-        }
-
+        $htaccess = $manager->apply($htaccess, $analyticsTypes, $hasLegacyRule);
         file_put_contents($htaccessPath, $htaccess);
         $settings->set('analytics_htaccess_types', $types);
 
