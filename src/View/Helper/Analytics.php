@@ -1242,7 +1242,7 @@ class Analytics extends AbstractHelper
         // Don't use searchOne for performance and simplicity.
         try {
             $stat = $this->view->api()->read('stats', ['url' => $url, 'type' => Stat::TYPE_PAGE])->getContent();
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             $stat = null;
         }
         return $this->view->partial('common/analytics-value', [
@@ -1269,7 +1269,7 @@ class Analytics extends AbstractHelper
         // Don't use searchOne for performance and simplicity.
         try {
             $stat = $this->view->api()->read('stats', ['entityName' => $resource['type'], 'entityId' => $resource['id'], 'type' => Stat::TYPE_RESOURCE])->getContent();
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             $stat = null;
         }
         $userStatus = $this->normalizeUserStatus($userStatus);
@@ -1304,7 +1304,7 @@ class Analytics extends AbstractHelper
                     ['url' => $downloadId, 'type' => Stat::TYPE_DOWNLOAD]
                 )->getContent();
             }
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             $stat = null;
         }
         return $this->view->partial('common/analytics-value', [

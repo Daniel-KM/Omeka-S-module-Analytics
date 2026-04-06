@@ -128,7 +128,7 @@ class LogCurrentUrl extends AbstractPlugin
             // - the controller is not found for an image;
             // - the same image is loaded multiple times on the same page.
             return null;
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             $logger = $this->services->get('Omeka\Logger');
             $logger->err(
                 'Exception when storing hit/stat: {message}', // @translate

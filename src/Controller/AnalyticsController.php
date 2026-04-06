@@ -247,7 +247,7 @@ class AnalyticsController extends AbstractActionController
         foreach ($hitsPerSite as $siteId => $hits) {
             try {
                 $siteTitle = $api->read('sites', ['id' => $siteId])->getContent()->title();
-            } catch (\Exception $e) {
+            } catch (\Throwable $e) {
                 $siteTitle = sprintf($removedSite, $siteId);
             }
             $results[] = [
@@ -931,7 +931,7 @@ class AnalyticsController extends AbstractActionController
                 if ($hitsSub > 0) {
                     try {
                         $itemSetTitle = $api->read('item_sets', ['id' => $itemSetId])->getContent()->displayTitle();
-                    } catch (\Exception $e) {
+                    } catch (\Throwable $e) {
                         $itemSetTitle = sprintf($removedItemSet, $itemSetId);
                     }
                     $results[] = [
@@ -945,7 +945,7 @@ class AnalyticsController extends AbstractActionController
             foreach ($hitsPerItemSet as $itemSetId => $hits) {
                 try {
                     $itemSetTitle = $api->read('item_sets', ['id' => $itemSetId])->getContent()->displayTitle();
-                } catch (\Exception $e) {
+                } catch (\Throwable $e) {
                     $itemSetTitle = sprintf($removedItemSet, $itemSetId);
                 }
                 $results[] = [
