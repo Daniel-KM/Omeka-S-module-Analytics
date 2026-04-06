@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-09 00:00+0000\n"
+"POT-Creation-Date: 2026-04-06 00:00+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -31,7 +31,7 @@ msgstr ""
 msgid "The module %1$s requires PHP %2$s or later."
 msgstr ""
 
-#: Module.php:319 Module.php:390 view/analytics/admin/analytics/index.phtml:20
+#: Module.php:331 Module.php:402 view/analytics/admin/analytics/index.phtml:20
 #: view/analytics/site/analytics/by-field.phtml:39
 #: view/analytics/site/analytics/by-hit.phtml:52
 #: view/analytics/site/analytics/by-item-set.phtml:37
@@ -41,39 +41,39 @@ msgstr ""
 msgid "Analytics"
 msgstr ""
 
-#: Module.php:340
+#: Module.php:352
 #, php-format
 msgid "Views: %d (anonymous: %d / users: %d)"
 msgstr ""
 
-#: Module.php:348
+#: Module.php:360
 #, php-format
 msgid "Position: %d (anonymous: %d / users: %d)"
 msgstr ""
 
-#: Module.php:398 view/analytics/site/analytics/index.phtml:26
+#: Module.php:410 view/analytics/site/analytics/index.phtml:26
 #, php-format
 msgid "Total Hits: %d"
 msgstr ""
 
-#: Module.php:400
+#: Module.php:412
 msgid "Last 30 days"
 msgstr ""
 
-#: Module.php:401
+#: Module.php:413
 msgid "Last 7 days"
 msgstr ""
 
-#: Module.php:402 src/Controller/AnalyticsController.php:81
+#: Module.php:414 src/Controller/AnalyticsController.php:81
 msgid "Last 24 hours"
 msgstr ""
 
-#: Module.php:421 view/analytics/admin/analytics/index.phtml:74
+#: Module.php:433 view/analytics/admin/analytics/index.phtml:74
 #: view/analytics/site/analytics/index.phtml:62
 msgid "Most viewed public pages"
 msgstr ""
 
-#: Module.php:432 Module.php:450 Module.php:466
+#: Module.php:444 Module.php:462 Module.php:478
 #: view/analytics/site/analytics/index.phtml:68
 #: view/analytics/site/analytics/index.phtml:86
 #: view/analytics/site/analytics/index.phtml:104
@@ -82,36 +82,36 @@ msgstr ""
 msgid "%s (%d views)"
 msgstr ""
 
-#: Module.php:442
+#: Module.php:454
 msgid "Most viewed public item"
 msgstr ""
 
-#: Module.php:458
+#: Module.php:470
 msgid "Most viewed public item set"
 msgstr ""
 
-#: Module.php:474
+#: Module.php:486
 msgid "Most downloaded file"
 msgstr ""
 
-#: Module.php:482 view/analytics/site/analytics/index.phtml:122
+#: Module.php:494 view/analytics/site/analytics/index.phtml:122
 #, php-format
 msgid "%s (%d downloads)"
 msgstr ""
 
-#: Module.php:490
+#: Module.php:502
 msgid "Most frequent fields"
 msgstr ""
 
-#: Module.php:494
+#: Module.php:506
 msgid "Referrer"
 msgstr ""
 
-#: Module.php:496
+#: Module.php:508
 msgid "User Agent"
 msgstr ""
 
-#: Module.php:503
+#: Module.php:515
 #, php-format
 msgid "%s: None"
 msgstr ""
@@ -499,63 +499,82 @@ msgid ""
 "removed during uninstall."
 msgstr ""
 
-#: Module.php:553
+#: Module.php:571
 msgid "The file .htaccess is not readable at the root of Omeka."
 msgstr ""
 
-#: Module.php:607
+#: Module.php:625
 msgid ""
 "A legacy .htaccess rule tracks file types \"{types}\" but is not managed by "
 "the module. Save the settings to convert it to the managed format."
 msgstr ""
 
-#: Module.php:614
+#: Module.php:631
 msgid ""
 "No .htaccess rule is set to track downloads. To count file downloads, add "
 "the following lines in the file .htaccess at the root of Omeka, just after "
 "\"RewriteEngine On\":{line_break}{rule}"
 msgstr ""
 
-#: Module.php:624
-msgid ""
-"The .htaccess rule is managed by the module and tracks file types: {types}."
-msgstr ""
-
-#: Module.php:672
+#: Module.php:675
 msgid ""
 "The file .htaccess is not writable. Add the following lines manually in the "
 "file .htaccess at the root of Omeka, just after \"RewriteEngine On\":"
 "{line_break}{rule}"
 msgstr ""
 
-#: Module.php:682
+#: Module.php:685
 msgid ""
 "The file .htaccess is not writable. Remove the lines starting with \"{marker}"
 "\" manually from the file .htaccess at the root of Omeka."
 msgstr ""
 
-#: Module.php:715
+#: Module.php:717
+msgid "File types {types} are tracked through the module Access rewrite rule."
+msgstr ""
+
+#: Module.php:724
 msgid "The .htaccess rule has been updated to track file types: {types}."
 msgstr ""
 
-#: Module.php:721
+#: Module.php:729
 msgid "The .htaccess rule for download tracking has been removed."
 msgstr ""
 
-#: Module.php:738
+#: Module.php:745
 msgid "Analytics: Index statistics (needed only after direct import)"
 msgstr ""
 
-#: Module.php:766
+#: Module.php:773
 msgid "Update of aggregated statistics: Start"
 msgstr ""
 
-#: Module.php:770
+#: Module.php:777
 msgid "Update of aggregated statistics: Ended."
 msgstr ""
 
 #: src/Mvc/MvcListeners.php:156 src/Mvc/Controller/Plugin/LogCurrentUrl.php:134
 msgid "Exception when storing hit/stat: {message}"
+msgstr ""
+
+#: src/Form/SiteSettingsFieldset.php:13
+msgid "Old themes"
+msgstr ""
+
+#: src/Form/SiteSettingsFieldset.php:26
+msgid "Analytics (old themes)"
+msgstr ""
+
+#: src/Form/SiteSettingsFieldset.php:28
+msgid "Item show"
+msgstr ""
+
+#: src/Form/SiteSettingsFieldset.php:29
+msgid "Media show"
+msgstr ""
+
+#: src/Form/SiteSettingsFieldset.php:30
+msgid "Item set show"
 msgstr ""
 
 #: src/Form/AnalyticsByDownloadForm.php:40

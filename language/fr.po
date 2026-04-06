@@ -1,15 +1,10 @@
-# SOME DESCRIPTIVE TITLE.
-# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
-# This file is distributed under the same license as the PACKAGE package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
-#
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-09 00:00+0000\n"
-"PO-Revision-Date: 2026-03-09 00:00+0000\n"
+"POT-Creation-Date: 2026-04-06 00:00+0000\n"
+"PO-Revision-Date: 2026-04-06 00:00+0000\n"
 "Last-Translator: Daniel Berthereau <Daniel.fr@Berthereau.net>\n"
 "Language-Team: \n"
 "Language: fr\n"
@@ -32,7 +27,7 @@ msgstr "Pré-requis absent. Impossible de mettre à jour."
 msgid "The module %1$s requires PHP %2$s or later."
 msgstr "Le module « %1$s » a besoin de PHP %2$s ou supérieure."
 
-#: Module.php:319 Module.php:390 view/analytics/admin/analytics/index.phtml:20
+#: Module.php:331 Module.php:402 view/analytics/admin/analytics/index.phtml:20
 #: view/analytics/site/analytics/by-field.phtml:39
 #: view/analytics/site/analytics/by-hit.phtml:52
 #: view/analytics/site/analytics/by-item-set.phtml:37
@@ -42,39 +37,39 @@ msgstr "Le module « %1$s » a besoin de PHP %2$s ou supérieure."
 msgid "Analytics"
 msgstr "Statistiques web"
 
-#: Module.php:340
+#: Module.php:352
 #, php-format
 msgid "Views: %d (anonymous: %d / users: %d)"
 msgstr "Vues : %d (%d anonymes / %d utilisateurs identifiés)"
 
-#: Module.php:348
+#: Module.php:360
 #, php-format
 msgid "Position: %d (anonymous: %d / users: %d)"
 msgstr "Position : %d (%d anonymes / %d utilisateurs)"
 
-#: Module.php:398 view/analytics/site/analytics/index.phtml:26
+#: Module.php:410 view/analytics/site/analytics/index.phtml:26
 #, php-format
 msgid "Total Hits: %d"
 msgstr "Vues totales : %d"
 
-#: Module.php:400
+#: Module.php:412
 msgid "Last 30 days"
 msgstr "30 derniers jours"
 
-#: Module.php:401
+#: Module.php:413
 msgid "Last 7 days"
 msgstr "7 derniers jours"
 
-#: Module.php:402 src/Controller/AnalyticsController.php:81
+#: Module.php:414 src/Controller/AnalyticsController.php:81
 msgid "Last 24 hours"
 msgstr "Dernières 24 heures"
 
-#: Module.php:421 view/analytics/admin/analytics/index.phtml:74
+#: Module.php:433 view/analytics/admin/analytics/index.phtml:74
 #: view/analytics/site/analytics/index.phtml:62
 msgid "Most viewed public pages"
 msgstr "Pages publiques les plus vues"
 
-#: Module.php:432 Module.php:450 Module.php:466
+#: Module.php:444 Module.php:462 Module.php:478
 #: view/analytics/site/analytics/index.phtml:68
 #: view/analytics/site/analytics/index.phtml:86
 #: view/analytics/site/analytics/index.phtml:104
@@ -83,36 +78,36 @@ msgstr "Pages publiques les plus vues"
 msgid "%s (%d views)"
 msgstr "%s (%d vues)"
 
-#: Module.php:442
+#: Module.php:454
 msgid "Most viewed public item"
 msgstr "Document public le plus vu"
 
-#: Module.php:458
+#: Module.php:470
 msgid "Most viewed public item set"
 msgstr "Collection publique la plus vue"
 
-#: Module.php:474
+#: Module.php:486
 msgid "Most downloaded file"
 msgstr "Fichier le plus téléchargé"
 
-#: Module.php:482 view/analytics/site/analytics/index.phtml:122
+#: Module.php:494 view/analytics/site/analytics/index.phtml:122
 #, php-format
 msgid "%s (%d downloads)"
 msgstr "%s (%d téléchagements)"
 
-#: Module.php:490
+#: Module.php:502
 msgid "Most frequent fields"
 msgstr "Champs les plus fréquents"
 
-#: Module.php:494
+#: Module.php:506
 msgid "Referrer"
 msgstr "Référent"
 
-#: Module.php:496
+#: Module.php:508
 msgid "User Agent"
 msgstr "Agent utilisateur"
 
-#: Module.php:503
+#: Module.php:515
 #, php-format
 msgid "%s: None"
 msgstr "%s : Aucun"
@@ -477,12 +472,16 @@ msgid ""
 "A new setting allows to manage the .htaccess download tracking rule from the "
 "settings. Detected file types: {types}."
 msgstr ""
+"Un nouveau paramètre permet de gérer la règle de suivi des téléchargements "
+"de .htaccess depuis les paramètres. Types de fichiers détectés : {types}."
 
 #: Module.php:55
 msgid ""
 "The tables from the module Statistics were found and will be reused by the "
 "module Analytics."
 msgstr ""
+"Les tables du module « Statistiques » ont été trouvées et seront réutilisées "
+"par le module « Analytics »."
 
 #: Module.php:62
 msgid ""
@@ -494,72 +493,113 @@ msgstr ""
 
 #: Module.php:67
 msgid "Missing requirement. Unable to install."
-msgstr ""
+msgstr "Condition requise manquante. Impossible d'installer."
 
 #: Module.php:178
 msgid ""
 "Analytics module: the .htaccess is not writable; the rewrite rule was not "
 "removed during uninstall."
 msgstr ""
+"Module Analytics : le fichier .htaccess n'est pas accessible en écriture ; "
+"la règle de réécriture n'a pas été supprimée lors de la désinstallation."
 
-#: Module.php:553
+#: Module.php:571
 msgid "The file .htaccess is not readable at the root of Omeka."
 msgstr ""
+"Le fichier .htaccess à la racine Omeka n'est pas accessible en lecture."
 
-#: Module.php:607
+#: Module.php:625
 msgid ""
 "A legacy .htaccess rule tracks file types \"{types}\" but is not managed by "
 "the module. Save the settings to convert it to the managed format."
 msgstr ""
+"Une ancienne règle .htaccess gère les types de fichiers « {types} » "
+"indépendamment par le module. Enregistrez les paramètres pour la convertir "
+"au format géré."
 
-#: Module.php:614
+#: Module.php:631
 msgid ""
 "No .htaccess rule is set to track downloads. To count file downloads, add "
 "the following lines in the file .htaccess at the root of Omeka, just after "
 "\"RewriteEngine On\":{line_break}{rule}"
 msgstr ""
+"Aucune règle .htaccess n'est configurée pour suivre les téléchargements. "
+"Pour compter les téléchargements, ajoutez les lignes suivantes dans le "
+"fichier .htaccess à la racine Omeka, juste après « RewriteEngine On » : "
+"{line_break}{rule}"
 
-#: Module.php:624
-msgid ""
-"The .htaccess rule is managed by the module and tracks file types: {types}."
-msgstr ""
-
-#: Module.php:672
+#: Module.php:675
 msgid ""
 "The file .htaccess is not writable. Add the following lines manually in the "
 "file .htaccess at the root of Omeka, just after \"RewriteEngine On\":"
 "{line_break}{rule}"
 msgstr ""
+"Le fichier .htaccess n'est pas accessible en écriture. Ajoutez manuellement "
+"les lignes suivantes dans le fichier .htaccess à la racine Omeka, "
+"juste après « RewriteEngine On » : {line_break}{rule}"
 
-#: Module.php:682
+#: Module.php:685
 msgid ""
 "The file .htaccess is not writable. Remove the lines starting with \"{marker}"
 "\" manually from the file .htaccess at the root of Omeka."
 msgstr ""
+"Le fichier .htaccess n'est pas accessible en écriture. Supprimez "
+"manuellement les lignes commençant par « {marker} » du fichier .htaccess à "
+"la racine Omeka."
 
-#: Module.php:715
+#: Module.php:717
+msgid "File types {types} are tracked through the module Access rewrite rule."
+msgstr ""
+"Les types de fichiers {types} sont suivis par la règle du module Access."
+
+#: Module.php:724
 msgid "The .htaccess rule has been updated to track file types: {types}."
 msgstr ""
+"La règle .htaccess a été mise à jour pour prendre en charge les types de "
+"fichiers : {types}."
 
-#: Module.php:721
+#: Module.php:729
 msgid "The .htaccess rule for download tracking has been removed."
 msgstr ""
+"La règle .htaccess relative au suivi des téléchargements a été supprimée."
 
-#: Module.php:738
+#: Module.php:745
 msgid "Analytics: Index statistics (needed only after direct import)"
 msgstr ""
+"Statistiques web : indexer (nécessaire uniquement après une importation "
+"directe)"
 
-#: Module.php:766
+#: Module.php:773
 msgid "Update of aggregated statistics: Start"
 msgstr "Mise à jour des statistiques agrégées : lancement"
 
-#: Module.php:770
+#: Module.php:777
 msgid "Update of aggregated statistics: Ended."
 msgstr "Mise à jour des statistiques agrégées : fin."
 
 #: src/Mvc/MvcListeners.php:156 src/Mvc/Controller/Plugin/LogCurrentUrl.php:134
 msgid "Exception when storing hit/stat: {message}"
 msgstr "Exception lors de l’enregistrement du hit/stat : {message}"
+
+#: src/Form/SiteSettingsFieldset.php:13
+msgid "Old themes"
+msgstr "Anciens thèmes"
+
+#: src/Form/SiteSettingsFieldset.php:26
+msgid "Analytics (old themes)"
+msgstr "Statistiques web (anciens thèmes)"
+
+#: src/Form/SiteSettingsFieldset.php:28
+msgid "Item show"
+msgstr "Contenu / vue"
+
+#: src/Form/SiteSettingsFieldset.php:29
+msgid "Media show"
+msgstr "Média / vue"
+
+#: src/Form/SiteSettingsFieldset.php:30
+msgid "Item set show"
+msgstr "Collection / vue"
 
 #: src/Form/AnalyticsByDownloadForm.php:40
 msgid "Large"
@@ -595,7 +635,7 @@ msgstr "Tous les mois"
 
 #: src/Form/SettingsFieldset.php:29
 msgid "File types to track downloads via .htaccess"
-msgstr ""
+msgstr "Types de fichiers pour suivre les téléchargements via .htaccess"
 
 #: src/Form/SettingsFieldset.php:30
 msgid ""
@@ -605,20 +645,28 @@ msgid ""
 "with its own rule, the download rule is unnecessary because Access calls "
 "Analytics directly."
 msgstr ""
+"Choisissez les types de fichiers à suivre par une règle Apache dans le "
+"fichier .htaccess racine. Cette règle redirige les accès directs aux "
+"fichiers via le contrôleur de téléchargement afin de compter les "
+"téléchargements. Lorsque le module Access est actif avec sa propre règle, la "
+"règle de téléchargement n'est pas nécessaire, car Access appelle directement "
+"Analytics."
 
 #: src/Form/SettingsFieldset.php:48
 msgid "Custom file paths to track via .htaccess"
-msgstr ""
+msgstr "Dossiers personnalisés à surveiller via le fichier .htaccess"
 
 #: src/Form/SettingsFieldset.php:49
 msgid ""
 "Additional file subdirectories to track, for example for the module "
 "DerivativeMedia (mp3, mp4, etc.). Separate paths with spaces."
 msgstr ""
+"Sous-dossiers à suivre, par exemple pour le module Derivative Media (mp3, "
+"mp4, etc.). Séparez les dossiers par des espaces."
 
 #: src/Form/SettingsFieldset.php:62
 msgid "Level of privacy for new hits"
-msgstr "Niveau de vie privée pour les nouveaux enregistrements"
+msgstr "Niveau de confidentialité pour les nouveaux enregistrements"
 
 #: src/Form/SettingsFieldset.php:65
 msgid "Hashed IP"
@@ -670,7 +718,7 @@ msgstr "Type d’utilisateur pour les pages publiques"
 
 #: src/Form/SettingsFieldset.php:127
 msgid "Disable analytics on admin dashboard"
-msgstr ""
+msgstr "Désactiver les statistiques sur le tableau de bord"
 
 #: src/Form/SettingsFieldset.php:138
 msgid "Results per page (admin)"
@@ -805,3 +853,10 @@ msgstr "Une propriété est nécessaire pour obtenir des statistiques."
 #: src/Controller/AnalyticsController.php:1063
 msgid "A year is required to get details by month."
 msgstr "Une année est nécessaire pour avoir les détails par mois."
+
+#~ msgid ""
+#~ "The .htaccess rule is managed by the module and tracks file types: "
+#~ "{types}."
+#~ msgstr ""
+#~ "La règle .htaccess est gérée par le module et prend en charge les types "
+#~ "de fichiers : {types}."
