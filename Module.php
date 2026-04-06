@@ -307,8 +307,20 @@ class Module extends AbstractModule
 
     public function displayPublic(Event $event): void
     {
+        $services = $this->getServiceLocator();
+        $currentTheme = $services->get('Omeka\Site\ThemeManager')->getCurrentTheme();
+        if (method_exists($currentTheme, 'isConfigurableResourcePageBlocks') && $currentTheme->isConfigurableResourcePageBlocks()) {
+            return;
+        }
         $view = $event->getTarget();
         $resource = $view->vars()->offsetGet('resource');
+        if ($resource) {
+            $placements = $services->get('Omeka\Settings\Site')->get('analytics_placement', []);
+            $key = 'after/' . $resource->resourceName();
+            if (!in_array($key, $placements)) {
+                return;
+            }
+        }
         echo $view->analytics()->textResource($resource);
     }
 

@@ -200,6 +200,9 @@ return [
         ],
     ],
     'analytics' => [
+        'site_settings' => [
+            'analytics_placement' => [],
+        ],
         'settings' => [
             // Types of files tracked via .htaccess. Empty means not managed by the module.
             'analytics_htaccess_types' => [],
