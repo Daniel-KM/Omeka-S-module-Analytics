@@ -530,24 +530,30 @@ class Module extends AbstractModule
     {
         $this->handleAnySettings($event, 'settings');
 
-        // Write the .htaccess rule according to the saved setting.
         $services = $this->getServiceLocator();
-        $settings = $services->get('Omeka\Settings');
-        $htaccessTypes = $settings->get('analytics_htaccess_types', []);
-        $this->manageHtaccess($htaccessTypes);
+        $request = $services->get('Application')->getMvcEvent()->getRequest();
+        if ($request->isPost()) {
+            // Write mode: persist the saved setting to .htaccess.
+            $settings = $services->get('Omeka\Settings');
+            $this->manageHtaccess($settings->get('analytics_htaccess_types', []));
+        } else {
+            // Read mode: sync setting from .htaccess and surface only problems.
+            $this->manageHtaccess(null);
+        }
     }
 
     /**
      * Manage the .htaccess rewrite rule for download tracking.
      *
      * In read mode ($types is null): parse the .htaccess to detect current
-     * tracked types, sync the setting, and display status messages.
+     * tracked types, sync the setting, and display problem messages only
+     * (legacy rule, no rule). Success state is silent to avoid noise on each
+     * Settings page render.
      *
      * In write mode ($types is an array): update the .htaccess rule to match
-     * the requested types. An empty array removes the rule.
-     *
-     * If the module Access is active with its own rule, the download rule is
-     * unnecessary because Access calls Analytics directly.
+     * the requested types, minus types already covered by the module Access
+     * rule (Apache routes them to /access/files/, dispatched and logged by the
+     * Analytics MvcListener). An empty array removes the Analytics rule.
      *
      * @param array|null $types Null for read mode, array for write mode.
      */
@@ -561,66 +567,65 @@ class Module extends AbstractModule
         $isWritable = is_writable($htaccessPath);
         $htaccess = file_get_contents($htaccessPath);
         if ($htaccess === false) {
-            $message = new PsrMessage(
+            $messenger->addError(new PsrMessage(
                 'The file .htaccess is not readable at the root of Omeka.' // @translate
-            );
-            $messenger->addError($message);
+            ));
             return;
         }
 
         $marker = '# Module Analytics: count downloads.';
         $accessMarker = '# Module Access: protect files.';
         $isWriteMode = $types !== null;
+        $knownStandardTypes = ['original', 'large', 'medium', 'square'];
 
-        // Check if the module Access is active with its own .htaccess rule.
-        $hasAccessRule = strpos($htaccess, $accessMarker) !== false;
-        $moduleManager = $services->get('Omeka\ModuleManager');
-        $accessModule = $moduleManager->getModule('Access');
-        $isAccessActive = $accessModule && $accessModule->getState() === \Omeka\Module\Manager::STATE_ACTIVE;
+        // Detect Access-managed rule and the file types it covers. These types
+        // are logged via the Analytics MvcListener when Access dispatches the
+        // access-file route, so they don't need an Analytics rewrite rule.
+        $accessTypes = [];
+        if (preg_match('/' . preg_quote($accessMarker, '/') . '\s*\n(?:\s*#[^\n]*\n)*\s*RewriteRule\s+"\^files\/\(([^)]+)\)\//', $htaccess, $m)) {
+            $accessTypes = explode('|', $m[1]);
+        }
 
-        // Parse existing rule to find currently tracked types.
+        // Parse existing Analytics rule to find currently tracked types.
         $currentTypes = [];
         $hasMarker = strpos($htaccess, $marker) !== false;
         $hasLegacyRule = false;
         if ($hasMarker) {
-            // Match the RewriteRule line after the marker (skip optional comment lines).
             if (preg_match('/' . preg_quote($marker, '/') . '\s*\n(?:\s*#[^\n]*\n)*\s*RewriteRule\s+"\^files\/\(([^)]+)\)\//', $htaccess, $matches)) {
                 $currentTypes = explode('|', $matches[1]);
             }
         } else {
-            // Detect legacy rules (without marker) that redirect to /download/files/.
-            $knownTypes = ['original', 'large', 'medium', 'square'];
+            // Detect legacy rules (without marker) that redirect to
+            // /download/files/.
             if (preg_match_all('/^\s*RewriteRule\s+.*files\/\(([^)]+)\).*\/download\/files\//m', $htaccess, $matches)) {
                 foreach ($matches[1] as $group) {
                     $currentTypes = array_merge($currentTypes, explode('|', $group));
                 }
                 $hasLegacyRule = true;
             }
-            if (preg_match_all('/^\s*RewriteRule\s+["\^]*files\/(' . implode('|', $knownTypes) . ')\/.*\/download\/files\//m', $htaccess, $matches)) {
+            if (preg_match_all('/^\s*RewriteRule\s+["\^]*files\/(' . implode('|', $knownStandardTypes) . ')\/.*\/download\/files\//m', $htaccess, $matches)) {
                 $currentTypes = array_merge($currentTypes, $matches[1]);
                 $hasLegacyRule = true;
             }
-            $currentTypes = array_values(array_unique(array_intersect($currentTypes, $knownTypes)));
+            $currentTypes = array_values(array_unique(array_intersect($currentTypes, $knownStandardTypes)));
         }
 
-        $knownStandardTypes = ['original', 'large', 'medium', 'square'];
-
-        // Read mode: sync setting from .htaccess state and display info.
+        // Read mode: sync setting from .htaccess state and display problems
+        // only. Success and Access-managed states are silent to avoid noise on
+        // every Settings page render.
         if (!$isWriteMode) {
-            $standardCurrent = array_values(array_intersect($currentTypes, $knownStandardTypes));
+            $effectiveCurrent = array_values(array_unique(array_merge($currentTypes, $accessTypes)));
+            $standardCurrent = array_values(array_intersect($effectiveCurrent, $knownStandardTypes));
             $customCurrent = array_values(array_diff($currentTypes, $knownStandardTypes));
             $settings->set('analytics_htaccess_types', $standardCurrent);
             $settings->set('analytics_htaccess_custom_types', implode(' ', $customCurrent));
 
-            if ($isAccessActive && $hasAccessRule) {
-                // No message: Access handles downloads directly.
-            } elseif ($hasLegacyRule) {
-                $message = new PsrMessage(
+            if ($hasLegacyRule) {
+                $messenger->addWarning(new PsrMessage(
                     'A legacy .htaccess rule tracks file types "{types}" but is not managed by the module. Save the settings to convert it to the managed format.', // @translate
                     ['types' => implode(', ', $currentTypes)]
-                );
-                $messenger->addWarning($message);
-            } elseif (empty($currentTypes) && !$hasAccessRule) {
+                ));
+            } elseif (empty($effectiveCurrent)) {
                 $exampleRule = $marker . "\n" . '# This rule is automatically managed by the module.' . "\n" . 'RewriteRule "^files/(original)/(.*)$" "download/files/$1/$2" [NC,L]';
                 $message = new PsrMessage(
                     'No .htaccess rule is set to track downloads. To count file downloads, add the following lines in the file .htaccess at the root of Omeka, just after "RewriteEngine On":{line_break}{rule}', // @translate
@@ -631,55 +636,41 @@ class Module extends AbstractModule
                 );
                 $message->setEscapeHtml(false);
                 $messenger->addError($message);
-            } else {
-                $message = new PsrMessage(
-                    'The .htaccess rule is managed by the module and tracks file types: {types}.', // @translate
-                    ['types' => implode(', ', $currentTypes)]
-                );
-                $messenger->addSuccess($message);
             }
             return;
         }
 
-        // Write mode: if Access is active with its rule, skip the download rule.
-        if ($isAccessActive && $hasAccessRule) {
-            // Remove existing download rule if present.
-            if ($hasMarker) {
-                $htaccess = preg_replace('/' . preg_quote($marker, '/') . '\s*\n(?:\s*#[^\n]*\n)*\s*RewriteRule\s+"[^"]*"\s+"[^"]*"\s+\[[^\]]*\]\s*\n?/', '', $htaccess);
-                if ($isWritable) {
-                    file_put_contents($htaccessPath, $htaccess);
-                }
-            }
-            $settings->set('analytics_htaccess_types', $types);
-            return;
-        }
-
-        // Merge standard types with custom types from setting.
+        // Write mode. Merge standard types with custom types from setting.
         $customTypesStr = $settings->get('analytics_htaccess_custom_types', '');
         $customTypes = array_filter(array_map('trim', preg_split('/[\s,|]+/', $customTypesStr)));
         $customTypes = array_filter($customTypes, fn ($v) => preg_match('/^[a-zA-Z0-9][-a-zA-Z0-9]*$/', $v));
-        $allTypes = array_values(array_unique(array_merge($types, $customTypes)));
+        $requestedTypes = array_values(array_unique(array_merge($types, $customTypes)));
 
-        // Build the new block (or empty if no types).
+        // Drop types already handled by the Access rule: Apache routes them to
+        // /access/files/, dispatched and logged via the Analytics MvcListener.
+        $analyticsTypes = array_values(array_diff($requestedTypes, $accessTypes));
+        $absorbed = array_values(array_intersect($requestedTypes, $accessTypes));
+
+        // Build the new block (or empty if no remaining types).
         $newBlock = '';
-        if (!empty($allTypes)) {
-            $typesPattern = implode('|', $allTypes);
+        if (!empty($analyticsTypes)) {
+            $typesPattern = implode('|', $analyticsTypes);
             $newBlock = $marker . "\n" . '# This rule is automatically managed by the module.' . "\n" . 'RewriteRule "^files/(' . $typesPattern . ')/(.*)$" "download/files/$1/$2" [NC,L]';
         }
 
         // Nothing changed: same types and already in managed format.
         $sortedCurrent = $currentTypes;
-        $sortedAll = $allTypes;
+        $sortedAnalytics = $analyticsTypes;
         sort($sortedCurrent);
-        sort($sortedAll);
-        if ($sortedCurrent === $sortedAll && !$hasLegacyRule) {
+        sort($sortedAnalytics);
+        if ($sortedCurrent === $sortedAnalytics && !$hasLegacyRule) {
             $settings->set('analytics_htaccess_types', $types);
             return;
         }
 
         if (!$isWritable) {
             $settings->set('analytics_htaccess_types', $types);
-            if (!empty($allTypes)) {
+            if (!empty($analyticsTypes)) {
                 $message = new PsrMessage(
                     'The file .htaccess is not writable. Add the following lines manually in the file .htaccess at the root of Omeka, just after "RewriteEngine On":{line_break}{rule}', // @translate
                     [
@@ -690,28 +681,27 @@ class Module extends AbstractModule
                 $message->setEscapeHtml(false);
                 $messenger->addWarning($message);
             } else {
-                $message = new PsrMessage(
+                $messenger->addWarning(new PsrMessage(
                     'The file .htaccess is not writable. Remove the lines starting with "{marker}" manually from the file .htaccess at the root of Omeka.', // @translate
                     ['marker' => $marker]
-                );
-                $messenger->addWarning($message);
+                ));
             }
             return;
         }
 
-        // Remove existing marker block if present (marker + optional comments + rule).
+        // Remove existing marker block if present.
         if ($hasMarker) {
             $htaccess = preg_replace('/' . preg_quote($marker, '/') . '\s*\n(?:\s*#[^\n]*\n)*\s*RewriteRule\s+"[^"]*"\s+"[^"]*"\s+\[[^\]]*\]\s*\n?/', '', $htaccess);
         }
 
-        // Remove legacy rules (without marker) that redirect to /download/files/.
+        // Remove legacy rules (without marker) that redirect to
+        // /download/files/.
         if ($hasLegacyRule) {
-            $knownTypes = ['original', 'large', 'medium', 'square'];
             $htaccess = preg_replace('/^\s*RewriteRule\s+.*files\/\([^)]+\).*\/download\/files\/.*\n?/m', '', $htaccess);
-            $htaccess = preg_replace('/^\s*RewriteRule\s+.*files\/(' . implode('|', $knownTypes) . ')\/.*\/download\/files\/.*\n?/m', '', $htaccess);
+            $htaccess = preg_replace('/^\s*RewriteRule\s+.*files\/(' . implode('|', $knownStandardTypes) . ')\/.*\/download\/files\/.*\n?/m', '', $htaccess);
         }
 
-        // Insert new block after "RewriteEngine On" if types are selected.
+        // Insert new block after "RewriteEngine On" if remaining types.
         if (!empty($newBlock)) {
             if (preg_match('/RewriteEngine\s+On\s*\n/', $htaccess, $m, PREG_OFFSET_CAPTURE)) {
                 $insertPos = $m[0][1] + strlen($m[0][0]);
@@ -722,17 +712,22 @@ class Module extends AbstractModule
         file_put_contents($htaccessPath, $htaccess);
         $settings->set('analytics_htaccess_types', $types);
 
-        if (!empty($allTypes)) {
-            $message = new PsrMessage(
+        if (!empty($absorbed)) {
+            $messenger->addNotice(new PsrMessage(
+                'File types {types} are tracked through the module Access rewrite rule.', // @translate
+                ['types' => implode(', ', $absorbed)]
+            ));
+        }
+
+        if (!empty($analyticsTypes)) {
+            $messenger->addSuccess(new PsrMessage(
                 'The .htaccess rule has been updated to track file types: {types}.', // @translate
-                ['types' => implode(', ', $allTypes)]
-            );
-            $messenger->addSuccess($message);
-        } else {
-            $message = new PsrMessage(
+                ['types' => implode(', ', $analyticsTypes)]
+            ));
+        } elseif (empty($absorbed)) {
+            $messenger->addSuccess(new PsrMessage(
                 'The .htaccess rule for download tracking has been removed.' // @translate
-            );
-            $messenger->addSuccess($message);
+            ));
         }
     }
 
