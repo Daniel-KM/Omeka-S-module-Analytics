@@ -81,6 +81,12 @@ class Module extends AbstractModule
 
     protected function preInstall(): void
     {
+        // Omeka calls install() before init(), so the module composer
+        // autoloader (loaded in init()) is not yet available. Load it here so
+        // classes from src/ (e.g. Stdlib\HtaccessManager) resolve during
+        // install/postInstall.
+        require_once __DIR__ . '/vendor/autoload.php';
+
         $services = $this->getServiceLocator();
         $translator = $services->get('MvcTranslator');
 
