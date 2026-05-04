@@ -537,10 +537,18 @@ class Module extends AbstractModule
         $this->handleAnySettings($event, 'settings');
 
         $services = $this->getServiceLocator();
+        $settings = $services->get('Omeka\Settings');
+        if ($settings->get('analytics_htaccess_skip')) {
+            $messenger = $services->get('ControllerPluginManager')->get('messenger');
+            $messenger->addWarning(new PsrMessage(
+                'Automatic management of .htaccess is disabled in config (analytics_htaccess_skip). The download rule must be configured manually (vhost, or another tool).' // @translate
+            ));
+            $this->checkProxyConfig();
+            return;
+        }
         $request = $services->get('Application')->getMvcEvent()->getRequest();
         if ($request->isPost()) {
             // Write mode: persist the saved setting to .htaccess.
-            $settings = $services->get('Omeka\Settings');
             $this->manageHtaccess($settings->get('analytics_htaccess_types', []));
         } else {
             // Read mode: sync setting from .htaccess and surface only problems.

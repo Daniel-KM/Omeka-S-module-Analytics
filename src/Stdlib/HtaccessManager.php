@@ -12,6 +12,7 @@ namespace Analytics\Stdlib;
 class HtaccessManager
 {
     public const MARKER = '# Module Analytics: count downloads.';
+    public const MARKER_END = '# /Module Analytics: count downloads.';
     public const ACCESS_MARKER = '# Module Access: protect files.';
     public const MANAGED_COMMENT = '# This rule is automatically managed by the module.';
     public const STANDARD_TYPES = ['original', 'large', 'medium', 'square'];
@@ -109,15 +110,19 @@ class HtaccessManager
         }
         return self::MARKER . "\n"
             . self::MANAGED_COMMENT . "\n"
-            . 'RewriteRule "^files/(' . implode('|', $types) . ')/(.*)$" "download/files/$1/$2" [NC,L]';
+            . 'RewriteRule "^files/(' . implode('|', $types) . ')/(.*)$" "download/files/$1/$2" [NC,L]' . "\n"
+            . self::MARKER_END;
     }
 
     /**
      * Apply the new Analytics block to the htaccess content.
      *
-     * Removes any existing managed block and any legacy unmanaged rules that
-     * redirect to /download/files/, then inserts the new block (if any) right
-     * after the "RewriteEngine On" directive.
+     * Removes any existing managed block (preferring bounded removal between
+     * start and end markers when both are present, falling back to the legacy
+     * "first RewriteRule after marker" heuristic for blocks written before the
+     * end marker existed) and any legacy unmanaged rules redirecting to
+     * /download/files/, then inserts the new block (if any) right after the
+     * "RewriteEngine On" directive.
      *
      * @param string $htaccess Original .htaccess content.
      * @param string[] $analyticsTypes Types for which to write the rule.
@@ -125,8 +130,23 @@ class HtaccessManager
      */
     public function apply(string $htaccess, array $analyticsTypes, bool $hasLegacyRule = false): string
     {
-        // Remove existing managed block.
-        if (strpos($htaccess, self::MARKER) !== false) {
+        $hasStart = strpos($htaccess, self::MARKER) !== false;
+        $hasEnd = strpos($htaccess, self::MARKER_END) !== false;
+        if ($hasStart && $hasEnd) {
+            // Bounded removal between explicit markers: cannot accidentally
+            // swallow neighbouring rules.
+            $htaccess = preg_replace(
+                '/'
+                . preg_quote(self::MARKER, '/')
+                . '.*?'
+                . preg_quote(self::MARKER_END, '/')
+                . '\s*\n?/s',
+                '',
+                $htaccess
+            );
+        } elseif ($hasStart) {
+            // Legacy block (no end marker): remove the start marker plus the
+            // first RewriteRule that follows.
             $htaccess = preg_replace(
                 '/' . preg_quote(self::MARKER, '/')
                 . '\s*\n(?:\s*#[^\n]*\n)*\s*RewriteRule\s+"[^"]*"\s+"[^"]*"\s+\[[^\]]*\]\s*\n?/',
@@ -135,7 +155,7 @@ class HtaccessManager
             );
         }
 
-        // Remove legacy rules.
+        // Remove legacy rules (no marker at all).
         if ($hasLegacyRule) {
             $htaccess = preg_replace(
                 '/^\s*RewriteRule\s+.*files\/\([^)]+\).*\/download\/files\/.*\n?/m',

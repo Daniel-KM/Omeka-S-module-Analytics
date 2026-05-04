@@ -2,6 +2,7 @@
 
 namespace Analytics\Form;
 
+use Common\Form\Element as CommonElement;
 use Laminas\Form\Element;
 use Laminas\Form\Fieldset;
 
@@ -21,6 +22,18 @@ class SettingsFieldset extends Fieldset
         $this
             ->setAttribute('id', 'analytics')
             ->setOption('element_groups', $this->elementGroups)
+            ->add([
+                'name' => 'analytics_htaccess_skip',
+                'type' => CommonElement\OptionalCheckbox::class,
+                'options' => [
+                    'element_group' => 'analytics',
+                    'label' => 'Do not modify .htaccess (manage Apache redirections manually)', // @translate
+                    'info' => 'When checked, the module will not write or update the rewrite rule in the root .htaccess. Add the rules manually (vhost or .htaccess) to redirect file requests through the download controller.', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'analytics_htaccess_skip',
+                ],
+            ])
             ->add([
                 'name' => 'analytics_htaccess_types',
                 'type' => Element\MultiCheckbox::class,

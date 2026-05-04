@@ -208,6 +208,9 @@ return [
             'analytics_htaccess_types' => [],
             // Custom file paths to track (for DerivativeMedia, etc.).
             'analytics_htaccess_custom_types' => '',
+            // Disable automatic management of .htaccess (rule managed in vhost
+            // or by another tool). Set in local.config.php only.
+            'analytics_htaccess_skip' => false,
 
             // Privacy settings.
             'analytics_privacy' => 'anonymous',
