@@ -574,7 +574,7 @@ class Module extends AbstractModule
 
         switch ($info['status']) {
             case 'proxy_likely':
-                $messenger->addNotice(new PsrMessage(
+                $messenger->addWarning(new PsrMessage(
                     'A reverse proxy seems to forward requests (X-Forwarded-For/X-Real-IP detected from private peer {peer}). To log real client IPs, add {peer} to "Trusted reverse proxies" in the settings below.', // @translate
                     ['peer' => $info['remoteAddr']]
                 ));

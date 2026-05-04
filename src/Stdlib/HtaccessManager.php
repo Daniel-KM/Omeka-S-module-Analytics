@@ -22,12 +22,28 @@ class HtaccessManager
      */
     public function parseAccessTypes(string $htaccess): array
     {
-        $regex = '/' . preg_quote(self::ACCESS_MARKER, '/')
-            . '\s*\n(?:\s*#[^\n]*\n)*\s*RewriteRule\s+"\^files\/\(([^)]+)\)\//';
-        if (preg_match($regex, $htaccess, $m)) {
-            return array_values(array_filter(explode('|', $m[1])));
+        // Match any active (non-commented) RewriteRule that sends ^files/(...)
+        // to /access/files/. Marker is not required: deployments may use a
+        // custom marker comment.
+        $types = [];
+        if (preg_match_all(
+            '/^[ \t]*RewriteRule\s+"?\^files\/\(([^)]+)\)\/[^"\s]*"?\s+"?\/?access\/files\//m',
+            $htaccess,
+            $matches
+        )) {
+            foreach ($matches[1] as $group) {
+                $types = array_merge($types, explode('|', $group));
+            }
         }
-        return [];
+        // Per-type form (without alternation).
+        if (preg_match_all(
+            '/^[ \t]*RewriteRule\s+"?\^files\/(' . implode('|', self::STANDARD_TYPES) . ')\/[^"\s]*"?\s+"?\/?access\/files\//m',
+            $htaccess,
+            $matches
+        )) {
+            $types = array_merge($types, $matches[1]);
+        }
+        return array_values(array_unique(array_filter($types)));
     }
 
     /**
