@@ -215,6 +215,10 @@ return [
             // Privacy settings.
             'analytics_privacy' => 'anonymous',
             'analytics_include_bots' => false,
+            // Trusted reverse proxies (IPs or CIDR, space/comma separated).
+            // X-Forwarded-For / X-Real-IP are honored only when the direct peer
+            // (REMOTE_ADDR) matches this list. Empty = no proxy trusted.
+            'analytics_trusted_proxies' => '',
             // Display.
             'analytics_default_user_status_admin' => 'hits',
             'analytics_default_user_status_public' => 'anonymous',

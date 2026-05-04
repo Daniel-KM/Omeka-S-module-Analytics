@@ -1096,18 +1096,12 @@ class HitAdapter extends AbstractEntityAdapter
      */
     public function getClientIp(): string
     {
-        // Support reverse proxies: X-Forwarded-For may contain
-        // multiple IPs (client, proxy1, proxy2).
-        $ip = $_SERVER['HTTP_X_FORWARDED_FOR']
-            ?? $_SERVER['HTTP_X_REAL_IP']
-            ?? $_SERVER['REMOTE_ADDR'];
-        $ip = trim(strtok(trim($ip), ','));
-        if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)
-            || filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6)
-        ) {
-            return $ip;
-        }
-        return '::';
+        // Honor X-Forwarded-For / X-Real-IP only when the direct peer is a
+        // configured trusted proxy; otherwise rely on REMOTE_ADDR. Prevents
+        // header spoofing when no reverse proxy sits in front of Apache.
+        $trusted = (string) $this->getServiceLocator()->get('Omeka\Settings')
+            ->get('analytics_trusted_proxies', '');
+        return (new \Analytics\Stdlib\IpResolver($trusted))->resolve($_SERVER);
     }
 
     /**
