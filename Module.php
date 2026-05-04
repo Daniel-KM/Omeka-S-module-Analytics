@@ -553,6 +553,49 @@ class Module extends AbstractModule
         } else {
             // Read mode: sync setting from .htaccess and surface only problems.
             $this->manageHtaccess(null);
+            $this->checkProxyConfig();
+        }
+    }
+
+    /**
+     * Detect reverse proxy presence and warn when the trusted_proxies setting
+     * is empty, misconfigured, or when proxy headers look spoofed. Silent when
+     * the configuration is correct or when no proxy headers are present.
+     */
+    protected function checkProxyConfig(): void
+    {
+        $services = $this->getServiceLocator();
+        $settings = $services->get('Omeka\Settings');
+        $messenger = $services->get('ControllerPluginManager')->get('messenger');
+
+        $trusted = (string) $settings->get('analytics_trusted_proxies', '');
+        $resolver = new \Analytics\Stdlib\IpResolver($trusted);
+        $info = $resolver->detect($_SERVER);
+
+        switch ($info['status']) {
+            case 'proxy_likely':
+                $messenger->addNotice(new PsrMessage(
+                    'A reverse proxy seems to forward requests (X-Forwarded-For/X-Real-IP detected from private peer {peer}). To log real client IPs, add {peer} to "Trusted reverse proxies" in the settings below.', // @translate
+                    ['peer' => $info['remoteAddr']]
+                ));
+                break;
+            case 'proxy_misconfigured':
+                $messenger->addWarning(new PsrMessage(
+                    'Trusted reverse proxies setting is set but does not include the current peer {peer}. Proxy headers are ignored, hits log proxy IPs instead of clients. Add {peer} to the trusted list.', // @translate
+                    ['peer' => $info['remoteAddr']]
+                ));
+                break;
+            case 'proxy_spoof_suspected':
+                $messenger->addWarning(new PsrMessage(
+                    'Proxy headers (X-Forwarded-For/X-Real-IP) received from a public, untrusted peer {peer}. Headers are ignored to prevent spoofing. Configure trusted_proxies only if a real reverse proxy sits in front.', // @translate
+                    ['peer' => $info['remoteAddr']]
+                ));
+                break;
+            case 'proxy_ok':
+            case 'no_proxy':
+            default:
+                // Silent: nothing to report.
+                break;
         }
     }
 

@@ -79,6 +79,74 @@ class IpResolver
         return $remote;
     }
 
+    /**
+     * Detect proxy configuration from a $_SERVER-like array.
+     *
+     * Returns an associative array with:
+     * - hasProxyHeaders: bool — X-Forwarded-For or X-Real-IP non-empty.
+     * - remoteAddr: string — REMOTE_ADDR value (may be empty).
+     * - remoteIsPrivate: bool — REMOTE_ADDR is private/loopback (proxy likely).
+     * - remoteIsTrusted: bool — REMOTE_ADDR matches the configured trust list.
+     * - status: string — one of:
+     *     - 'no_proxy': no proxy headers.
+     *     - 'proxy_likely': headers + private REMOTE_ADDR + setting empty.
+     *     - 'proxy_misconfigured': headers + private REMOTE_ADDR + setting set
+     *       but does not include REMOTE_ADDR (headers ignored, IPs wrong).
+     *     - 'proxy_ok': headers + REMOTE_ADDR is trusted (correct config).
+     *     - 'proxy_spoof_suspected': headers from a public REMOTE_ADDR not in
+     *       trust list (likely client-forged headers).
+     *
+     * @return array{hasProxyHeaders: bool, remoteAddr: string, remoteIsPrivate: bool, remoteIsTrusted: bool, status: string}
+     */
+    public function detect(array $server): array
+    {
+        $remote = (string) ($server['REMOTE_ADDR'] ?? '');
+        $xff = (string) ($server['HTTP_X_FORWARDED_FOR'] ?? '');
+        $xri = (string) ($server['HTTP_X_REAL_IP'] ?? '');
+        $hasHeaders = $xff !== '' || $xri !== '';
+        $isPrivate = $this->isValidIp($remote) && $this->isPrivateIp($remote);
+        $isTrusted = $this->isValidIp($remote) && $this->isTrusted($remote);
+        $hasTrustList = $this->trustedIps !== [] || $this->trustedRanges !== [];
+
+        if (!$hasHeaders) {
+            $status = 'no_proxy';
+        } elseif ($isTrusted) {
+            $status = 'proxy_ok';
+        } elseif ($hasTrustList && $isPrivate) {
+            $status = 'proxy_misconfigured';
+        } elseif ($isPrivate) {
+            $status = 'proxy_likely';
+        } else {
+            $status = 'proxy_spoof_suspected';
+        }
+
+        return [
+            'hasProxyHeaders' => $hasHeaders,
+            'remoteAddr' => $remote,
+            'remoteIsPrivate' => $isPrivate,
+            'remoteIsTrusted' => $isTrusted,
+            'status' => $status,
+        ];
+    }
+
+    /**
+     * Check whether an IP is in a private/loopback/link-local range.
+     */
+    public function isPrivateIp(string $ip): bool
+    {
+        if (!$this->isValidIp($ip)) {
+            return false;
+        }
+        // FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE rejects private
+        // and reserved IPs; if the IP fails that filter, it IS
+        // private/reserved.
+        return filter_var(
+            $ip,
+            FILTER_VALIDATE_IP,
+            FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE
+        ) === false;
+    }
+
     public function isTrusted(string $ip): bool
     {
         if (in_array($ip, $this->trustedIps, true)) {
