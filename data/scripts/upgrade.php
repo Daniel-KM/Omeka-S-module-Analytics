@@ -92,3 +92,20 @@ if (version_compare($oldVersion, '3.4.14', '<')) {
         $siteSettings->set('analytics_placement', ['after/items', 'after/media', 'after/item_sets']);
     }
 }
+
+if (version_compare($oldVersion, '3.4.15', '<')) {
+    // The .htaccess download rule now coexists with the module Access rule:
+    // types covered by Access are skipped (logged via dispatch), remaining
+    // types still get an Analytics rewrite rule. Re-save the settings to
+    // refresh the .htaccess in case the previous version stripped the rule.
+    $settings->set('analytics_trusted_proxies', '');
+    $messenger->addSuccess(new PsrMessage(
+        'A new setting was added: "Trusted reverse proxies". When the server sits behind a reverse proxy, add the proxy IPs/CIDR to track real client IPs through X-Forwarded-For / X-Real-IP.' // @translate
+    ));
+    $messenger->addWarning(new PsrMessage(
+        'It is recommended to check config if the server is behind a proxy.' // @translate
+    ));
+    $messenger->addSuccess(new PsrMessage(
+        'The .htaccess download tracking rule now coexists with the module Access rule. Types handled by Access are tracked through the Access dispatch; remaining types keep their own Analytics rule. Open the module settings and save once to refresh the .htaccess if needed.' // @translate
+    ));
+}
