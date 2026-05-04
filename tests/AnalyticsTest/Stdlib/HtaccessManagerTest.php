@@ -44,6 +44,28 @@ class HtaccessManagerTest extends TestCase
         $this->assertSame(['original', 'large', 'medium'], $types);
     }
 
+    public function testParseAccessTypesCustomMarker(): void
+    {
+        $access = "# Module Access (with or without module Statistics).\n"
+            . "# Here, only \"original\" are protected, not large thumbnails.\n"
+            . "RewriteRule \"^files/(original|large|medium|square)/(.*)$\" \"/access/files/\$1/\$2\" [NC,L]\n";
+        $types = $this->manager->parseAccessTypes($this->baseHtaccess($access));
+        $this->assertSame(['original', 'large', 'medium', 'square'], $types);
+    }
+
+    public function testParseAccessTypesNoMarkerAtAll(): void
+    {
+        $rule = "RewriteRule \"^files/(original|large)/(.*)$\" \"/access/files/\$1/\$2\" [NC,L]\n";
+        $types = $this->manager->parseAccessTypes($this->baseHtaccess($rule));
+        $this->assertSame(['original', 'large'], $types);
+    }
+
+    public function testParseAccessTypesIgnoresCommentedRule(): void
+    {
+        $rule = "# RewriteRule \"^files/(original)/(.*)$\" \"/access/files/\$1/\$2\" [NC,L]\n";
+        $this->assertSame([], $this->manager->parseAccessTypes($this->baseHtaccess($rule)));
+    }
+
     public function testParseManagedAnalyticsTypesNone(): void
     {
         $this->assertSame([], $this->manager->parseManagedAnalyticsTypes($this->baseHtaccess()));
@@ -139,7 +161,8 @@ class HtaccessManagerTest extends TestCase
     {
         $expected = "# Module Analytics: count downloads.\n"
             . "# This rule is automatically managed by the module.\n"
-            . 'RewriteRule "^files/(medium)/(.*)$" "download/files/$1/$2" [NC,L]';
+            . 'RewriteRule "^files/(medium)/(.*)$" "download/files/$1/$2" [NC,L]' . "\n"
+            . '# /Module Analytics: count downloads.';
         $this->assertSame($expected, $this->manager->buildBlock(['medium']));
     }
 
@@ -148,7 +171,8 @@ class HtaccessManagerTest extends TestCase
         $block = $this->manager->buildBlock(['original', 'medium', 'mp3']);
         $this->assertStringContainsString('(original|medium|mp3)', $block);
         $this->assertStringContainsString('download/files/$1/$2', $block);
-        $this->assertStringEndsWith('[NC,L]', $block);
+        $this->assertStringContainsString('[NC,L]', $block);
+        $this->assertStringEndsWith('# /Module Analytics: count downloads.', $block);
     }
 
     public function testApplyInsertsBlockAfterRewriteEngine(): void
@@ -220,6 +244,56 @@ class HtaccessManagerTest extends TestCase
         $this->assertSame(['original', 'large'], $this->manager->parseAccessTypes($h2));
         // Analytics rule tracks only medium (original|large absorbed).
         $this->assertSame(['medium'], $this->manager->parseManagedAnalyticsTypes($h2));
+    }
+
+    public function testBuildBlockIncludesEndMarker(): void
+    {
+        $block = $this->manager->buildBlock(['medium']);
+        $this->assertStringContainsString('# Module Analytics: count downloads.', $block);
+        $this->assertStringContainsString('# /Module Analytics: count downloads.', $block);
+        $this->assertStringEndsWith('# /Module Analytics: count downloads.', $block);
+    }
+
+    public function testApplyBoundedRemovalPreservesNeighbourRules(): void
+    {
+        $existing = "# Module Analytics: count downloads.\n"
+            . "# This rule is automatically managed by the module.\n"
+            . "RewriteRule \"^files/(medium)/(.*)$\" \"download/files/\$1/\$2\" [NC,L]\n"
+            . "# /Module Analytics: count downloads.\n\n"
+            . "# Admin custom rule\n"
+            . "RewriteRule ^custom/(.*)$ /handler/\$1 [L]\n";
+        $h = $this->baseHtaccess($existing);
+        $r = $this->manager->apply($h, []);
+        $this->assertStringNotContainsString('# Module Analytics:', $r);
+        $this->assertStringNotContainsString('# /Module Analytics:', $r);
+        // Neighbour rule preserved.
+        $this->assertStringContainsString('# Admin custom rule', $r);
+        $this->assertStringContainsString('RewriteRule ^custom/(.*)$', $r);
+    }
+
+    public function testApplyLegacyBlockWithoutEndMarkerStillRemoved(): void
+    {
+        $existing = "# Module Analytics: count downloads.\n"
+            . "# This rule is automatically managed by the module.\n"
+            . "RewriteRule \"^files/(medium)/(.*)$\" \"download/files/\$1/\$2\" [NC,L]\n";
+        $h = $this->baseHtaccess($existing);
+        $r = $this->manager->apply($h, []);
+        $this->assertStringNotContainsString('# Module Analytics:', $r);
+        $this->assertStringNotContainsString('files/(medium)', $r);
+    }
+
+    public function testApplyReplaceWritesBlockWithEndMarker(): void
+    {
+        $existing = "# Module Analytics: count downloads.\n"
+            . "# This rule is automatically managed by the module.\n"
+            . "RewriteRule \"^files/(original)/(.*)$\" \"download/files/\$1/\$2\" [NC,L]\n"
+            . "# /Module Analytics: count downloads.\n\n";
+        $h = $this->baseHtaccess($existing);
+        $r = $this->manager->apply($h, ['medium']);
+        $this->assertSame(1, substr_count($r, '# Module Analytics: count downloads.'));
+        $this->assertSame(1, substr_count($r, '# /Module Analytics: count downloads.'));
+        $this->assertStringContainsString('(medium)', $r);
+        $this->assertStringNotContainsString('(original)', $r);
     }
 
     public function testRoundTripAllTypesAbsorbed(): void
