@@ -116,17 +116,63 @@ managed format automatically.
 ##### Compatibility with module Access
 
 The module is compatible with the module [Access] for file access control.
-When Access is active with its own `.htaccess` rule, the Analytics download
-rule is **not needed** because Access calls Analytics directly when serving
-files.
+The Analytics rule and the Access rule coexist: file types covered by Access
+(typically `original`, `large`) are tracked through the Access dispatch, while
+remaining types selected in Analytics settings (e.g. `medium`, `square`, custom
+types like `mp3`, `pdf`) keep their own Analytics rewrite rule pointing to
+`/download/`.
 
-**Important**: do not keep a `/download/` rule alongside the `/access/` rule.
-The `/download/` route does not check access rights, so a private file would
-become public.
+When the Analytics settings are saved, the module computes the difference
+between requested types and types covered by Access. Only the difference is
+written to the Analytics `.htaccess` rule. A notice is displayed listing the
+types absorbed by Access.
+
+**Important**: do not keep a `/download/` rule for a type already covered by
+Access. The `/download/` route does not check access rights, so a private file
+would become public. The module enforces this automatically by skipping any
+type already in the Access rule.
 
 When Access is uninstalled, it automatically converts its `.htaccess` rule into
 an Analytics download rule if the module is active, so download tracking
 continues seamlessly.
+
+##### Reverse proxy / real client IP
+
+When the server sits behind a reverse proxy (Nginx, HAProxy, Varnish,
+Cloudflare, AWS ALB, etc.), `REMOTE_ADDR` is the proxy IP rather than the
+visitor IP. The real client IP is forwarded through `X-Forwarded-For` or
+`X-Real-IP`.
+
+By default, the module **does not trust** these headers, since any client can
+forge them when no proxy is in front of Apache. Use the setting
+"Trusted reverse proxies" (`analytics_trusted_proxies`) to declare the IPs or
+CIDR ranges of legitimate proxies (space, comma or semicolon separated):
+
+```
+127.0.0.1 10.0.0.0/8 192.168.0.0/16 2001:db8::/32
+```
+
+Resolution rules:
+
+- If `REMOTE_ADDR` matches a trusted entry, `X-Forwarded-For` is parsed
+  left-to-right and the leftmost untrusted IP is used (skips proxy hops).
+- If the whole chain is trusted, the leftmost valid IP is used.
+- Otherwise `X-Real-IP` is used as fallback when set.
+- If `REMOTE_ADDR` is **not** trusted, headers are ignored and `REMOTE_ADDR`
+  is logged (anti-spoof default).
+
+The settings page detects proxy configuration automatically and displays:
+
+- a notice when proxy headers come from a private peer and the trust list is
+  empty (suggests adding the peer);
+- a warning when the trust list is set but does not include the current peer
+  (headers ignored, hits log proxy IPs);
+- a warning when proxy headers come from a public, untrusted peer (likely
+  spoof attempt, headers ignored).
+
+If Apache uses `mod_remoteip`, `REMOTE_ADDR` is already replaced with the
+real client IP at the web server level; the trusted_proxies setting can stay
+empty.
 
 #### Manual Apache configuration
 
