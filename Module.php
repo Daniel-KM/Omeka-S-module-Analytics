@@ -600,14 +600,41 @@ class Module extends AbstractModule
             $effectiveCurrent = array_values(array_unique(array_merge($currentTypes, $accessTypes)));
             $standardCurrent = array_values(array_intersect($effectiveCurrent, $standard));
             $customCurrent = array_values(array_diff($currentTypes, $standard));
-            $settings->set('analytics_htaccess_types', $standardCurrent);
-            $settings->set('analytics_htaccess_custom_types', implode(' ', $customCurrent));
+
+            // Do not overwrite saved settings from an empty/Access-only
+            // .htaccess when the file is not writable: the saved value is the
+            // user's intent that the module could not apply.
+            $savedTypes = $settings->get('analytics_htaccess_types', []);
+            $savedCustom = (string) $settings->get('analytics_htaccess_custom_types', '');
+            $unwritableMismatch = !$isWritable
+                && empty($currentTypes)
+                && (!empty(array_diff($savedTypes, $accessTypes)) || $savedCustom !== '');
+            if (!$unwritableMismatch) {
+                $settings->set('analytics_htaccess_types', $standardCurrent);
+                $settings->set('analytics_htaccess_custom_types', implode(' ', $customCurrent));
+            }
 
             if ($hasLegacyRule) {
                 $messenger->addWarning(new PsrMessage(
                     'A legacy .htaccess rule tracks file types "{types}" but is not managed by the module. Save the settings to convert it to the managed format.', // @translate
                     ['types' => implode(', ', $currentTypes)]
                 ));
+            } elseif ($unwritableMismatch) {
+                $wantedTypes = array_values(array_unique(array_merge(
+                    array_diff($savedTypes, $accessTypes),
+                    array_filter(array_map('trim', preg_split('/[\s,|]+/', $savedCustom)))
+                )));
+                $exampleRule = $manager->buildBlock($wantedTypes);
+                $message = new PsrMessage(
+                    'The file .htaccess is not writable, so the rule for types "{types}" set below could not be applied. Add the following lines manually in the file .htaccess at the root of Omeka, just after "RewriteEngine On":{line_break}{rule}', // @translate
+                    [
+                        'types' => implode(', ', $wantedTypes),
+                        'line_break' => '<br><pre>',
+                        'rule' => htmlspecialchars($exampleRule) . '</pre>',
+                    ]
+                );
+                $message->setEscapeHtml(false);
+                $messenger->addWarning($message);
             } elseif (empty($effectiveCurrent)) {
                 $exampleRule = $manager->buildBlock(['original']);
                 $message = new PsrMessage(
