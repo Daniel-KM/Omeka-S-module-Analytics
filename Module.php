@@ -772,12 +772,37 @@ class Module extends AbstractModule
          * @var \Laminas\Form\Element\Radio $process
          */
         $form = $event->getTarget();
-        $form->setAttribute('data-tasks-warning', $form->getAttribute('data-tasks-warning') . ',db_analytics_index');
         $fieldset = $form->get('module_tasks');
         $process = $fieldset->get('process');
         $valueOptions = $process->getValueOptions();
         $valueOptions['db_analytics_index'] = 'Analytics: Index statistics (needed only after direct import)'; // @translate
+        $valueOptions['db_analytics_clean_hits'] = 'Analytics: Clean past hits (deduplicate files, remove regions of images)'; // @translate
         $process->setValueOptions($valueOptions);
+
+        if (method_exists($form, 'addTaskSubjects')) {
+            $form->addTaskSubjects([
+                'db_analytics_index' => [
+                    'name' => 'Analytics: Reindex', // @translate
+                    'description' => 'Index the analytics statistics (needed only after a direct database import).', // @translate
+                    'actions' => [
+                        'db_analytics_index' => 'Index', // @translate
+                    ],
+                ],
+                'db_analytics_clean_hits' => [
+                    'name' => 'Analytics: Clean hits', // @translate
+                    'description' => 'Deduplicate the past hits of files (same visitor within the deduplication window) and remove the hits of the regions of the images (tiles), then rebuild the statistics. The counts of files and images will decrease. The removed hits are archived in the table "hit_duplicate", to check then to empty, or to restore.', // @translate
+                    'actions' => [
+                        'db_analytics_clean_hits' => 'Clean', // @translate
+                    ],
+                ],
+            ]);
+        }
+        if (method_exists($form, 'addDangerousTasks')) {
+            $form->addDangerousTasks([
+                'db_analytics_index',
+                'db_analytics_clean_hits',
+            ]);
+        }
     }
 
     public function handleEasyAdminJobs(Event $event): void
@@ -785,6 +810,9 @@ class Module extends AbstractModule
         $process = $event->getParam('process');
         if ($process === 'db_analytics_index') {
             $event->setParam('job', \Analytics\Job\AggregateHits::class);
+            $event->setParam('args', []);
+        } elseif ($process === 'db_analytics_clean_hits') {
+            $event->setParam('job', \Analytics\Job\CleanHits::class);
             $event->setParam('args', []);
         }
     }
