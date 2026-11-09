@@ -616,9 +616,6 @@ class Module extends AbstractModule
     protected function checkProxyConfig(): void
     {
         $services = $this->getServiceLocator();
-        if (!$services->has('Omeka\ClientIp')) {
-            return;
-        }
         $detected = $services->get('Omeka\ClientIp')->detect();
         if ($detected['status'] === 'untrusted') {
             $services->get('ControllerPluginManager')->get('messenger')->addWarning(new PsrMessage(

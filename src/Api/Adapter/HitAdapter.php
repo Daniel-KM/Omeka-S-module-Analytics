@@ -1120,12 +1120,7 @@ class HitAdapter extends AbstractEntityAdapter
      */
     public function getClientIp(): string
     {
-        $services = $this->getServiceLocator();
-        // The service is missing while the module Common is not upgraded.
-        if (!$services->has('Omeka\ClientIp')) {
-            return (string) ($_SERVER['REMOTE_ADDR'] ?? '::');
-        }
-        return $services->get('Omeka\ClientIp')->getIp();
+        return $this->getServiceLocator()->get('Omeka\ClientIp')->getIp();
     }
 
     /**
