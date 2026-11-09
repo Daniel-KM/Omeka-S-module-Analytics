@@ -780,6 +780,17 @@ class AnalyticsController extends AbstractActionController
         $query['field'] = empty($query['field']) ? 'referrer' : $query['field'];
         $field = $query['field'];
 
+        // The frequencies are computed on the hits, so they are limited to a
+        // recent period by default.
+        if (empty($query['since']) && empty($query['until'])) {
+            $query['since'] = date('Y-m-d', strtotime('-30 days'));
+            $form->get('since')->setValue($query['since']);
+        }
+        $period = array_filter([
+            'since' => $query['since'] ?? null,
+            'until' => $query['until'] ?? null,
+        ]);
+
         $query = $this->defaultSort($query, [$field, 'hits'], 'hits');
 
         $currentPage = isset($query['page']) ? (int) $query['page'] : null;
@@ -794,8 +805,8 @@ class AnalyticsController extends AbstractActionController
         $analytics = $this->viewHelpers()->get('analytics');
         $results = $analytics->frequents($query, $currentPage, $resourcesPerPage);
         $totalResults = $analytics->countFrequents($query);
-        $totalHits = $analytics->totalHits([], $userStatus);
-        $totalNotEmpty = $analytics->totalHits(['field' => $field, 'not_empty' => $field], $userStatus);
+        $totalHits = $analytics->totalHits($period, $userStatus);
+        $totalNotEmpty = $analytics->totalHits(['field' => $field, 'not_empty' => $field] + $period, $userStatus);
         $this->paginator($totalResults);
 
         switch ($field) {

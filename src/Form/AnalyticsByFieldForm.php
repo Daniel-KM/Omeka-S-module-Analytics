@@ -69,6 +69,29 @@ class AnalyticsByFieldForm extends Form
                 ],
             ])
             ->add([
+                'name' => 'since',
+                'type' => CommonElement\OptionalDate::class,
+                'options' => [
+                    'label' => 'From', // @translate
+                    'info' => 'The frequencies are computed on the hits, so they are limited to the last 30 days by default.', // @translate
+                    'format' => 'Y-m-d',
+                ],
+                'attributes' => [
+                    'id' => 'since',
+                ],
+            ])
+            ->add([
+                'name' => 'until',
+                'type' => CommonElement\OptionalDate::class,
+                'options' => [
+                    'label' => 'Until', // @translate
+                    'format' => 'Y-m-d',
+                ],
+                'attributes' => [
+                    'id' => 'until',
+                ],
+            ])
+            ->add([
                 'name' => 'submit',
                 'type' => Element\Button::class,
                 'options' => [
