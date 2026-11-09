@@ -55,6 +55,10 @@ class Module extends AbstractModule
                 'The tables from the module Statistics were found and will be reused by the module Analytics.' // @translate
             );
             $messenger->addNotice($message);
+            $message = new PsrMessage(
+                'Run the task "Analytics: Update indexes" of the module Easy Admin to update the indexes of these tables, so the recording of the hits is quicker.' // @translate
+            );
+            $messenger->addWarning($message);
         } else {
             // Standard install: drop any orphan empty hit/stat table left by a
             // previously failed install, then check and create tables. The
@@ -825,6 +829,7 @@ class Module extends AbstractModule
         $valueOptions = $process->getValueOptions();
         $valueOptions['db_analytics_index'] = 'Analytics: Index statistics (needed only after direct import)'; // @translate
         $valueOptions['db_analytics_clean_hits'] = 'Analytics: Clean past hits (deduplicate files, remove regions of images)'; // @translate
+        $valueOptions['db_analytics_indexes'] = 'Analytics: Update the indexes of the tables of hits and stats'; // @translate
         $process->setValueOptions($valueOptions);
 
         if (method_exists($form, 'addTaskSubjects')) {
@@ -843,12 +848,20 @@ class Module extends AbstractModule
                         'db_analytics_clean_hits' => 'Clean', // @translate
                     ],
                 ],
+                'db_analytics_indexes' => [
+                    'name' => 'Analytics: Update indexes', // @translate
+                    'description' => 'Add the composite index on the url and the date of the hits, then remove the useless indexes of the tables of hits and stats. It may take a long time on a big table, but the site remains available.', // @translate
+                    'actions' => [
+                        'db_analytics_indexes' => 'Update', // @translate
+                    ],
+                ],
             ]);
         }
         if (method_exists($form, 'addDangerousTasks')) {
             $form->addDangerousTasks([
                 'db_analytics_index',
                 'db_analytics_clean_hits',
+                'db_analytics_indexes',
             ]);
         }
     }
@@ -861,6 +874,9 @@ class Module extends AbstractModule
             $event->setParam('args', []);
         } elseif ($process === 'db_analytics_clean_hits') {
             $event->setParam('job', \Analytics\Job\CleanHits::class);
+            $event->setParam('args', []);
+        } elseif ($process === 'db_analytics_indexes') {
+            $event->setParam('job', \Analytics\Job\UpdateDatabaseIndexes::class);
             $event->setParam('args', []);
         }
     }

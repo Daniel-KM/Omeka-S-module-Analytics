@@ -31,9 +31,7 @@ use Omeka\Entity\AbstractEntity;
            )
  *     },
  *     indexes={
- *         @Index(columns={"type"}),
  *         @Index(columns={"url"}),
- *         @Index(columns={"entity_id"}),
  *         @Index(columns={"entity_name"}),
  *         @Index(columns={"entity_id", "entity_name"}),
  *         @Index(columns={"created"}),

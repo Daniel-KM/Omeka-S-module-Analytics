@@ -20,17 +20,11 @@ use Omeka\Entity\AbstractEntity;
  * @Entity
  * @Table(
  *     indexes={
- *         @Index(columns={"url"}),
- *         @Index(columns={"entity_id"}),
- *         @Index(columns={"entity_name"}),
+ *         @Index(columns={"url", "created"}),
  *         @Index(columns={"entity_id", "entity_name"}),
  *         @Index(columns={"site_id"}),
  *         @Index(columns={"user_id"}),
- *         @Index(columns={"ip"}),
  *         @Index(columns={"language"}),
- *         @Index(columns={"referrer"}),
- *         @Index(columns={"user_agent"}),
- *         @Index(columns={"accept_language"}),
  *         @Index(columns={"created"})
  *     }
  * )
