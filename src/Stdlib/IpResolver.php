@@ -55,20 +55,20 @@ class IpResolver
         if ($this->isTrusted($remote)) {
             $forwarded = $server['HTTP_X_FORWARDED_FOR'] ?? '';
             if ($forwarded !== '') {
-                // The leftmost IP is the original client; subsequent IPs are
-                // proxies. Walk left-to-right and skip trusted hops.
-                $chain = array_map('trim', explode(',', $forwarded));
-                foreach ($chain as $candidate) {
-                    if ($this->isValidIp($candidate) && !$this->isTrusted($candidate)) {
-                        return $candidate;
+                // Each proxy appends the ip of its peer, so the client is the
+                // first ip from the right that is not a trusted proxy. The left
+                // part may be forged by the client.
+                $client = $remote;
+                foreach (array_reverse(array_map('trim', explode(',', $forwarded))) as $candidate) {
+                    if (!$this->isValidIp($candidate)) {
+                        break;
+                    }
+                    $client = $candidate;
+                    if (!$this->isTrusted($candidate)) {
+                        break;
                     }
                 }
-                // Whole chain is trusted: take the leftmost valid IP.
-                foreach ($chain as $candidate) {
-                    if ($this->isValidIp($candidate)) {
-                        return $candidate;
-                    }
-                }
+                return $client;
             }
             $real = $server['HTTP_X_REAL_IP'] ?? '';
             if ($real !== '' && $this->isValidIp($real)) {
