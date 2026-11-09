@@ -149,6 +149,10 @@ $this->htmlElement('body')->appendAttribute('class', 'statistics index');
     </div>
 <?php endif; ?>
 
+<?php if (isset($results['bots'])): ?>
+    <?= $this->partial('common/analytics-bots', ['bots' => $results['bots']]) ?>
+<?php endif; ?>
+
 <?php if (isset($results['most_frequent_fields'])):
     $labels = [
         'referrer' => $translate('Most frequent external referrers (last 30 days)'),

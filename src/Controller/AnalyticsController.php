@@ -7,6 +7,7 @@ use Doctrine\DBAL\Connection;
 use Laminas\Mvc\Controller\AbstractActionController;
 use Laminas\View\Model\ViewModel;
 use Analytics\Entity\Stat;
+use Analytics\Stdlib\BotCounter;
 
 /**
  * Controller to browse Analytics.
@@ -103,6 +104,11 @@ class AnalyticsController extends AbstractActionController
                 $val['query'] = json_encode(json_decode($val['query'], true), 320);
             }
             unset($val);
+        }
+
+        if ($isAdminRequest) {
+            $results['bots'] = (new BotCounter($this->connection))
+                ->summary(date('Y-m-d', strtotime('-30 days')));
         }
 
         $view = new ViewModel([

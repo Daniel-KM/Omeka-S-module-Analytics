@@ -1,0 +1,31 @@
+<?php
+/**
+ * @var \Laminas\View\Renderer\PhpRenderer $this
+ * @var array $bots With keys "totals" and "names".
+ */
+
+use Analytics\Stdlib\BotCounter;
+
+$plugins = $this->getHelperPluginManager();
+$escape = $plugins->get('escapeHtml');
+$translate = $plugins->get('translate');
+
+$totals = $bots['totals'];
+?>
+
+<div>
+    <h2><?= $translate('Robots (last 30 days)') ?></h2>
+    <p><?= sprintf($translate('About %1$d requests of robots, not counted in the hits [%2$d challenges, %3$d answers, %4$d declared robots].'),
+        BotCounter::estimate($totals),
+        $totals[BotCounter::TYPE_CHALLENGED] ?? 0,
+        $totals[BotCounter::TYPE_SOLVED] ?? 0,
+        $totals[BotCounter::TYPE_DECLARED] ?? 0)
+    ?></p>
+    <?php if ($bots['names']): ?>
+    <ol>
+    <?php foreach ($bots['names'] as $name => $hits): ?>
+        <li><?= sprintf($translate('%1$s (%2$d requests)'), $escape($name), $hits) ?></li>
+    <?php endforeach; ?>
+    </ol>
+    <?php endif; ?>
+</div>

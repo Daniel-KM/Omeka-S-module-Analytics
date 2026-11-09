@@ -73,6 +73,36 @@ class BotCounter
     }
 
     /**
+     * Get the number of requests by type and the most frequent names.
+     *
+     * @param string $since Date of the first day to take into account.
+     * @return array With keys "totals" (by type) and "names" (hits by name).
+     */
+    public function summary(string $since, int $limit = 10): array
+    {
+        try {
+            $totals = $this->connection->fetchAllKeyValue(
+                'SELECT `type`, SUM(`hits`) FROM `analytics_bot_count` WHERE `day` >= ? GROUP BY `type`',
+                [$since]
+            );
+            $names = $this->connection->fetchAllKeyValue(
+                'SELECT `name`, SUM(`hits`) AS `total` FROM `analytics_bot_count`
+                WHERE `day` >= ? AND `name` <> ""
+                GROUP BY `name`
+                ORDER BY `total` DESC
+                LIMIT ' . $limit,
+                [$since]
+            );
+        } catch (\Doctrine\DBAL\Exception $e) {
+            return ['totals' => [], 'names' => []];
+        }
+        return [
+            'totals' => array_map('intval', $totals),
+            'names' => array_map('intval', $names),
+        ];
+    }
+
+    /**
      * Get the name of a robot from its user agent, if it declares it.
      *
      * The name is the first word that contains a keyword, so without the
