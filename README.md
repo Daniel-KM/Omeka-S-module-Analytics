@@ -143,36 +143,20 @@ Cloudflare, AWS ALB, etc.), `REMOTE_ADDR` is the proxy IP rather than the
 visitor IP. The real client IP is forwarded through `X-Forwarded-For` or
 `X-Real-IP`.
 
-By default, the module **does not trust** these headers, since any client can
-forge them when no proxy is in front of Apache. Use the setting
-"Trusted reverse proxies" (`analytics_trusted_proxies`) to declare the IPs or
-CIDR ranges of legitimate proxies (space, comma or semicolon separated):
+The headers are read only when the request comes from a trusted reverse proxy,
+since any client can forge them. The trusted proxies are set in the main
+settings (section Security), managed by the module [Common], and the client ip
+is the first ip from the right of `X-Forwarded-For` that is not a trusted
+proxy. When the list is empty, the proxies with a private or loopback address
+are trusted. A proxy on the same machine, that connects with the address of the
+server (for example Caddy in front of Apache on a shared hosting), is always
+trusted for the hits.
 
-```
-127.0.0.1 10.0.0.0/8 192.168.0.0/16 2001:db8::/32
-```
-
-Resolution rules:
-
-- If `REMOTE_ADDR` matches a trusted entry, `X-Forwarded-For` is parsed
-  left-to-right and the leftmost untrusted IP is used (skips proxy hops).
-- If the whole chain is trusted, the leftmost valid IP is used.
-- Otherwise `X-Real-IP` is used as fallback when set.
-- If `REMOTE_ADDR` is **not** trusted, headers are ignored and `REMOTE_ADDR`
-  is logged (anti-spoof default).
-
-The settings page detects proxy configuration automatically and displays:
-
-- a notice when proxy headers come from a private peer and the trust list is
-  empty (suggests adding the peer);
-- a warning when the trust list is set but does not include the current peer
-  (headers ignored, hits log proxy IPs);
-- a warning when proxy headers come from a public, untrusted peer (likely
-  spoof attempt, headers ignored).
+The settings page warns when proxy headers come from a peer that is not a
+trusted proxy.
 
 If Apache uses `mod_remoteip`, `REMOTE_ADDR` is already replaced with the
-real client IP at the web server level; the trusted_proxies setting can stay
-empty.
+real client IP at the web server level; the trusted proxies can stay empty.
 
 #### Manual Apache configuration
 
@@ -299,7 +283,35 @@ Notes
 - Hits of anonymous users and identified users are counted separately.
 - Only pages of the public theme are counted.
 - Reload of a page generates a new hit (no check).
-- IP can be hashed (default) or truncated for privacy purpose.
+- IP is anonymous by default. It can be hashed with a secret salt of the site or
+  truncated (first parts of the ipv4 or of the ipv6 groups) for privacy purpose.
+- The requests of a file by the same visitor (same ip, user agent and language)
+  within a configurable number of minutes count as a single hit, so the probe,
+  the ranges of an audio or video file, the preload of a player and the replays
+  are not counted many times. Head requests are not counted.
+- The view of an image is its `info.json`. The requests of the regions of the
+  images (tiles) are not counted as hits. An option allows to aggregate them,
+  like the played parts of the audio and video files, by month in the table
+  `analytics_segment`, to get a heat map of the most viewed zones.
+- The hits of the past versions can be cleaned once with the task "Analytics:
+  Clean hits", available as a checkbox in the main settings and in the module
+  [Easy Admin]: it deduplicates the hits of files, removes the hits of the
+  regions of the images and of the technical requests (checks of rights, bot
+  challenge), and rebuilds the statistics. The removed hits are archived in the table
+  `hit_duplicate`, to check then to empty, or to restore.
+- The [digital objects] are counted like the items and the media.
+- The robots are not counted in the hits, but their requests are counted by day
+  in a separate table, and the summary displays them for the last 30 days: the
+  challenges of the module [Bot Challenge] without answer and the robots that
+  declare themselves in their user agent, with their name. It is an estimation
+  of requests, not of robots, and the robots that solve the challenge or that
+  use a path excluded from it are not detected.
+- The most frequent referrers, queries, browsers and languages are computed on
+  the hits, so the summary is limited to the last 30 days, like the page by
+  field by default (a period can be set in its form).
+- On upgrade, the indexes of the tables of hits and stats are updated in a
+  background job. It can be run again with the task "Analytics: Update indexes"
+  of the module [Easy Admin], for example after a direct import of old tables.
 - Currently, screen size is not detected.
 
 
@@ -310,6 +322,7 @@ TODO
 - [x] Fix and finalize statistics for public side and shortcodes.
 - [ ] Replace public statistics pages by a block and remove public routes.
 - [ ] Statistics for api.
+- [ ] Derive the salt of the hashed ips from the omeka secret key when available.
 - [x] Add summary in public side.
 - [ ] Move some options to site settings.
 - [x] Store the site id in hits.
@@ -394,8 +407,11 @@ Copyright
 [Access]: https://gitlab.com/Daniel-KM/Omeka-S-module-Access
 [Derivative Media]: https://gitlab.com/Daniel-KM/Omeka-S-module-DerivativeMedia
 [Blocks Disposition]: https://gitlab.com/Daniel-KM/Omeka-S-module-BlocksDisposition
+[Easy Admin]: https://gitlab.com/Daniel-KM/Omeka-S-module-EasyAdmin
+[Bot Challenge]: https://gitlab.com/Daniel-KM/Omeka-S-module-BotChallenge
+[digital objects]: https://gitlab.com/Daniel-KM/Omeka-S-module-DigitalObject
 [installing a module]: https://omeka.org/s/docs/user-manual/modules/
-[module issues]: https://gitlab.com/Daniel-KM/Omeka-S-module-Analytics/issues
+[module issues]: https://gitlab.com/Daniel-KM/Omeka-S-module-Analytics/-/work_items
 [CeCILL v2.1]: https://www.cecill.info/licences/Licence_CeCILL_V2.1-en.html
 [GNU/GPL]: https://www.gnu.org/licenses/gpl-3.0.html
 [FSF]: https://www.fsf.org
