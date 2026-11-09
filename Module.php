@@ -569,7 +569,7 @@ class Module extends AbstractModule
                     $html .= sprintf($translate('%s: None'), $label);
                 } else {
                     $result = reset($results);
-                    $html .= sprintf('%s: %s (%d%%)', sprintf('<a href="%s">%s</a>', $url('admin/analytics/default', ['action' => 'by-field'], true) . '?field=' . $field, $label), $result[$field], $result['hits'] * 100 / $totalHits);
+                    $html .= sprintf('%s: %s (%d%%)', sprintf('<a href="%s">%s</a>', htmlspecialchars($url('admin/analytics/default', ['action' => 'by-field'], true) . '?field=' . $field), htmlspecialchars($label)), $result[$field], $result['hits'] * 100 / $totalHits);
                 }
                 $html .= '</li>';
             }

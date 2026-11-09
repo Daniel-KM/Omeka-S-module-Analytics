@@ -20,7 +20,7 @@ class AnalyticsByFieldForm extends Form
                 'name' => 'field',
                 'type' => CommonElement\OptionalRadio::class,
                 'options' => [
-                    'label' => 'Field', // @ŧranslate
+                    'label' => 'Field', // @translate
                     'value_options' => [
                         'referrer' => 'Referrer', // @translate
                         'query' => 'query', // @translate
@@ -39,7 +39,7 @@ class AnalyticsByFieldForm extends Form
                 'name' => 'resource_type',
                 'type' => CommonElement\OptionalRadio::class,
                 'options' => [
-                    'label' => 'Filter pages with resources', // @ŧranslate
+                    'label' => 'Filter pages with resources', // @translate
                     'value_options' => [
                         '' => 'All', // @translate
                         'items' => 'By item', // @translate
@@ -95,7 +95,7 @@ class AnalyticsByFieldForm extends Form
                 'name' => 'submit',
                 'type' => Element\Button::class,
                 'options' => [
-                    'label' => 'Submit', // @ŧranslate
+                    'label' => 'Submit', // @translate
                 ],
                 'attributes' => [
                     'id' => 'submit',

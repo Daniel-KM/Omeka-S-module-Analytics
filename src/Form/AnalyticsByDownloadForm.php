@@ -33,7 +33,7 @@ class AnalyticsByDownloadForm extends Form
                 'name' => 'file_type',
                 'type' => CommonElement\OptionalMultiCheckbox::class,
                 'options' => [
-                    'label' => 'Original and thumbnails', // @ŧranslate
+                    'label' => 'Original and thumbnails', // @translate
                     'value_options' => [
                         '' => 'All', // @translate
                         'original' => 'Original', // @translate
@@ -67,7 +67,7 @@ class AnalyticsByDownloadForm extends Form
                 'name' => 'year',
                 'type' => CommonElement\OptionalSelect::class,
                 'options' => [
-                    'label' => 'Year', // @ŧranslate
+                    'label' => 'Year', // @translate
                     'value_options' => [
                         '' => 'All years', // @translate
                     ] + $this->years,
@@ -81,7 +81,7 @@ class AnalyticsByDownloadForm extends Form
                 'name' => 'month',
                 'type' => CommonElement\OptionalSelect::class,
                 'options' => [
-                    'label' => 'Month', // @ŧranslate
+                    'label' => 'Month', // @translate
                     'value_options' => [
                         '' => 'All monthes', // @translate
                         1 => 'January',
@@ -109,7 +109,7 @@ class AnalyticsByDownloadForm extends Form
                 'name' => 'since',
                 'type' => CommonElement\OptionalDate::class,
                 'options' => [
-                    'label' => 'From', // @ŧranslate
+                    'label' => 'From', // @translate
                     'format' => 'Y-m-d',
                 ],
                 'attributes' => [
@@ -123,7 +123,7 @@ class AnalyticsByDownloadForm extends Form
                 'name' => 'until',
                 'type' => CommonElement\OptionalDate::class,
                 'options' => [
-                    'label' => 'Until', // @ŧranslate
+                    'label' => 'Until', // @translate
                     'format' => 'Y-m-d',
                 ],
                 'attributes' => [
@@ -137,7 +137,7 @@ class AnalyticsByDownloadForm extends Form
                 'name' => 'columns',
                 'type' => CommonElement\OptionalMultiCheckbox::class,
                 'options' => [
-                    'label' => 'Columns', // @ŧranslate
+                    'label' => 'Columns', // @translate
                     'value_options' => [
                         'url' => 'Page', // @translate
                         'hits' => 'Hits', // @translate
@@ -165,7 +165,7 @@ class AnalyticsByDownloadForm extends Form
                 'name' => 'per_page',
                 'type' => CommonElement\OptionalSelect::class,
                 'options' => [
-                    'label' => 'Results per page', // @ŧranslate
+                    'label' => 'Results per page', // @translate
                     'value_options' => [
                         '25' => '25',
                         '50' => '50',
@@ -192,7 +192,7 @@ class AnalyticsByDownloadForm extends Form
                 'name' => 'submit',
                 'type' => Element\Button::class,
                 'options' => [
-                    'label' => 'Submit', // @ŧranslate
+                    'label' => 'Submit', // @translate
                 ],
                 'attributes' => [
                     'id' => 'submit',

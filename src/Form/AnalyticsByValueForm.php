@@ -33,7 +33,7 @@ class AnalyticsByValueForm extends Form
                 'name' => 'resource_type',
                 'type' => CommonElement\OptionalRadio::class,
                 'options' => [
-                    'label' => 'Filter pages with resources', // @ŧranslate
+                    'label' => 'Filter pages with resources', // @translate
                     'value_options' => [
                         '' => 'All', // @translate
                         'items' => 'By item', // @translate
@@ -80,7 +80,7 @@ class AnalyticsByValueForm extends Form
                 'name' => 'value_type',
                 'type' => CommonElement\OptionalRadio::class,
                 'options' => [
-                    'label' => 'Value type', // @ŧranslate
+                    'label' => 'Value type', // @translate
                     'value_options' => [
                         'value' => 'Value',
                         'resource' => 'Resource',
@@ -96,7 +96,7 @@ class AnalyticsByValueForm extends Form
                 'name' => 'by_period',
                 'type' => CommonElement\OptionalRadio::class,
                 'options' => [
-                    'label' => 'Group by period', // @ŧranslate
+                    'label' => 'Group by period', // @translate
                     'value_options' => [
                         'all' => 'All', // @translate
                         'year' => 'By year', // @translate
@@ -112,7 +112,7 @@ class AnalyticsByValueForm extends Form
                 'name' => 'year',
                 'type' => CommonElement\OptionalSelect::class,
                 'options' => [
-                    'label' => 'Year', // @ŧranslate
+                    'label' => 'Year', // @translate
                     'value_options' => [
                         '' => 'All years', // @translate
                     ] + $this->years,
@@ -126,7 +126,7 @@ class AnalyticsByValueForm extends Form
                 'name' => 'month',
                 'type' => CommonElement\OptionalSelect::class,
                 'options' => [
-                    'label' => 'Month', // @ŧranslate
+                    'label' => 'Month', // @translate
                     'value_options' => [
                         '' => 'All monthes', // @translate
                         1 => 'January',
@@ -154,7 +154,7 @@ class AnalyticsByValueForm extends Form
                 'name' => 'submit',
                 'type' => Element\Button::class,
                 'options' => [
-                    'label' => 'Submit', // @ŧranslate
+                    'label' => 'Submit', // @translate
                 ],
                 'attributes' => [
                     'id' => 'submit',

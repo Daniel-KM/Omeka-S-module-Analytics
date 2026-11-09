@@ -33,7 +33,7 @@ class AnalyticsByResourceForm extends Form
                 'name' => 'entity_name',
                 'type' => CommonElement\OptionalRadio::class,
                 'options' => [
-                    'label' => 'Filter pages with resources', // @ŧranslate
+                    'label' => 'Filter pages with resources', // @translate
                     'value_options' => [
                         '' => 'All', // @translate
                         'items' => 'By item', // @translate
@@ -68,7 +68,7 @@ class AnalyticsByResourceForm extends Form
                 'name' => 'year',
                 'type' => CommonElement\OptionalSelect::class,
                 'options' => [
-                    'label' => 'Year', // @ŧranslate
+                    'label' => 'Year', // @translate
                     'value_options' => [
                         '' => 'All years', // @translate
                     ] + $this->years,
@@ -82,7 +82,7 @@ class AnalyticsByResourceForm extends Form
                 'name' => 'month',
                 'type' => CommonElement\OptionalSelect::class,
                 'options' => [
-                    'label' => 'Month', // @ŧranslate
+                    'label' => 'Month', // @translate
                     'value_options' => [
                         '' => 'All monthes', // @translate
                         1 => 'January',
@@ -110,7 +110,7 @@ class AnalyticsByResourceForm extends Form
                 'name' => 'since',
                 'type' => CommonElement\OptionalDate::class,
                 'options' => [
-                    'label' => 'From', // @ŧranslate
+                    'label' => 'From', // @translate
                     'format' => 'Y-m-d',
                 ],
                 'attributes' => [
@@ -124,7 +124,7 @@ class AnalyticsByResourceForm extends Form
                 'name' => 'until',
                 'type' => CommonElement\OptionalDate::class,
                 'options' => [
-                    'label' => 'Until', // @ŧranslate
+                    'label' => 'Until', // @translate
                     'format' => 'Y-m-d',
                 ],
                 'attributes' => [
@@ -138,7 +138,7 @@ class AnalyticsByResourceForm extends Form
                 'name' => 'columns',
                 'type' => CommonElement\OptionalMultiCheckbox::class,
                 'options' => [
-                    'label' => 'Columns', // @ŧranslate
+                    'label' => 'Columns', // @translate
                     'value_options' => [
                         'url' => 'Page', // @translate
                         'hits' => 'Hits', // @translate
@@ -169,7 +169,7 @@ class AnalyticsByResourceForm extends Form
                 'name' => 'per_page',
                 'type' => CommonElement\OptionalSelect::class,
                 'options' => [
-                    'label' => 'Results per page', // @ŧranslate
+                    'label' => 'Results per page', // @translate
                     'value_options' => [
                         '25' => '25',
                         '50' => '50',
@@ -196,7 +196,7 @@ class AnalyticsByResourceForm extends Form
                 'name' => 'submit',
                 'type' => Element\Button::class,
                 'options' => [
-                    'label' => 'Submit', // @ŧranslate
+                    'label' => 'Submit', // @translate
                 ],
                 'attributes' => [
                     'id' => 'submit',

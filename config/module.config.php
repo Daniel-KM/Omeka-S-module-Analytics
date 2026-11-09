@@ -233,9 +233,6 @@ return [
             // Record the requested zones of the images and parts of the audio
             // and video files, as a heat map.
             'analytics_segments' => false,
-            // Trusted reverse proxies (IPs or CIDR, space/comma separated).
-            // X-Forwarded-For / X-Real-IP are honored only when the direct peer
-            // (REMOTE_ADDR) matches this list. Empty = no proxy trusted.
             // Display.
             'analytics_default_user_status_admin' => 'hits',
             'analytics_default_user_status_public' => 'anonymous',
