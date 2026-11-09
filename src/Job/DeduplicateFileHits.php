@@ -31,6 +31,11 @@ class DeduplicateFileHits extends AbstractJob
         /** @var \Doctrine\DBAL\Connection $connection */
         $connection = $services->get('Omeka\Connection');
 
+        // The removed hits are archived in a table, so a too wide removal, for
+        // example when old hits share the ip of an untrusted reverse proxy,
+        // can be checked and restored.
+        $connection->executeStatement('CREATE TABLE IF NOT EXISTS `hit_duplicate` LIKE `hit`');
+
         // The hits are read in deduplication order by chunks, and deleted only
         // at the end, so the offsets remain stable.
         $deduplicator = new HitDeduplicator(HitAdapter::DEDUPLICATION_MINUTES * 60);
@@ -45,14 +50,14 @@ class DeduplicateFileHits extends AbstractJob
                 return;
             }
             $rows = $connection->executeQuery(
-                'SELECT `id`, `url`, `ip`, `created` FROM `hit`
+                'SELECT `id`, `url`, `ip`, `user_agent`, `created` FROM `hit`
                 WHERE `url` LIKE "%/files/%"
-                ORDER BY `url`, `ip`, `created`, `id`
+                ORDER BY `url`, `ip`, `user_agent`, `created`, `id`
                 LIMIT ' . self::SQL_LIMIT . ' OFFSET ' . $offset
             )->fetchAllAssociative();
             foreach ($rows as $row) {
                 ++$total;
-                if ($deduplicator->isDuplicate($row['url'], $row['ip'], $row['created'])) {
+                if ($deduplicator->isDuplicate($row['url'], $row['ip'], $row['user_agent'], $row['created'])) {
                     $toDelete[] = (int) $row['id'];
                 }
             }
@@ -60,13 +65,17 @@ class DeduplicateFileHits extends AbstractJob
         } while (count($rows) === self::SQL_LIMIT);
 
         foreach (array_chunk($toDelete, 1000) as $chunk) {
+            $ids = implode(',', $chunk);
             $connection->executeStatement(
-                'DELETE FROM `hit` WHERE `id` IN (' . implode(',', $chunk) . ')'
+                'INSERT INTO `hit_duplicate` SELECT * FROM `hit` WHERE `id` IN (' . $ids . ')'
+            );
+            $connection->executeStatement(
+                'DELETE FROM `hit` WHERE `id` IN (' . $ids . ')'
             );
         }
 
         $logger->notice(
-            'Deduplication of the hits of files: {count} duplicates removed among {total} hits of files.', // @translate
+            'Deduplication of the hits of files: {count} duplicates removed among {total} hits of files. The removed hits are archived in the table "hit_duplicate": check them, then empty it, or restore them with "INSERT INTO hit SELECT * FROM hit_duplicate".', // @translate
             ['count' => count($toDelete), 'total' => $total]
         );
 
