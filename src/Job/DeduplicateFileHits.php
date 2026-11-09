@@ -35,6 +35,12 @@ class DeduplicateFileHits extends AbstractJob
         // example when old hits share the ip of an untrusted reverse proxy,
         // can be checked and restored.
         $connection->executeStatement('CREATE TABLE IF NOT EXISTS `hit_duplicate` LIKE `hit`');
+        // The archive is read only by id, so the secondary indexes copied from
+        // the table of hits are useless.
+        $indexes = $connection->executeQuery('SHOW INDEX FROM `hit_duplicate` WHERE `Key_name` <> "PRIMARY"')->fetchAllAssociative();
+        foreach (array_unique(array_column($indexes, 'Key_name')) as $index) {
+            $connection->executeStatement("ALTER TABLE `hit_duplicate` DROP INDEX `$index`");
+        }
 
         // The hits are read in deduplication order by chunks, and deleted only
         // at the end, so the offsets remain stable.
