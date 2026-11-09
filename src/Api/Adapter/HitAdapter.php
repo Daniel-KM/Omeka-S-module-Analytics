@@ -1116,9 +1116,7 @@ class HitAdapter extends AbstractEntityAdapter
     }
 
     /**
-     * Get the ip of the client, even behind a reverse proxy.
-     *
-     * The trusted proxies of the module take precedence over the main ones.
+     * Get the ip of the client, even behind the trusted reverse proxies.
      */
     public function getClientIp(): string
     {
@@ -1127,9 +1125,7 @@ class HitAdapter extends AbstractEntityAdapter
         if (!$services->has('Omeka\ClientIp')) {
             return (string) ($_SERVER['REMOTE_ADDR'] ?? '::');
         }
-        $clientIp = $services->get('Omeka\ClientIp');
-        $trusted = $clientIp::normalizeTrustedProxies($services->get('Omeka\Settings')->get('analytics_trusted_proxies', ''));
-        return $clientIp->getIp(null, $trusted ?: null);
+        return $services->get('Omeka\ClientIp')->getIp();
     }
 
     /**

@@ -619,12 +619,10 @@ class Module extends AbstractModule
         if (!$services->has('Omeka\ClientIp')) {
             return;
         }
-        $clientIp = $services->get('Omeka\ClientIp');
-        $trusted = $clientIp::normalizeTrustedProxies($services->get('Omeka\Settings')->get('analytics_trusted_proxies', ''));
-        $detected = $clientIp->detect(null, $trusted ?: null);
+        $detected = $services->get('Omeka\ClientIp')->detect();
         if ($detected['status'] === 'untrusted') {
             $services->get('ControllerPluginManager')->get('messenger')->addWarning(new PsrMessage(
-                'Proxy headers (X-Forwarded-For/X-Real-IP) are received from {peer}, that is not a trusted proxy, so they are ignored and the hits log the ip of the proxy. If it is the reverse proxy of the server, add it to the trusted reverse proxies of the main settings or below.', // @translate
+                'Proxy headers (X-Forwarded-For/X-Real-IP) are received from {peer}, that is not a trusted proxy, so they are ignored and the hits log the ip of the proxy. If it is the reverse proxy of the server, add it to the trusted reverse proxies of the main settings.', // @translate
                 ['peer' => $detected['peer']]
             ));
         }

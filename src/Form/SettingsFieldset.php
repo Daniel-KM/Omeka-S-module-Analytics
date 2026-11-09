@@ -99,19 +99,6 @@ class SettingsFieldset extends Fieldset
                 ],
             ])
             ->add([
-                'name' => 'analytics_trusted_proxies',
-                'type' => Element\Text::class,
-                'options' => [
-                    'element_group' => 'analytics',
-                    'label' => 'Trusted reverse proxies', // @translate
-                    'info' => 'IPs or CIDR ranges (space or comma separated) of reverse proxies in front of the server, to use instead of the trusted reverse proxies of the main settings. Headers X-Forwarded-For and X-Real-IP are honored only when the direct peer is a trusted proxy. Empty: use the main settings.', // @translate
-                ],
-                'attributes' => [
-                    'id' => 'analytics_trusted_proxies',
-                    'placeholder' => '127.0.0.1 10.0.0.0/8',
-                ],
-            ])
-            ->add([
                 'name' => 'analytics_deduplication_minutes',
                 'type' => Element\Number::class,
                 'options' => [
