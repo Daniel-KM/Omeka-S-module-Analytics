@@ -27,6 +27,13 @@ use Analytics\Entity\Stat;
  */
 class HitAdapter extends AbstractEntityAdapter
 {
+    /**
+     * Minutes during which the same file requested by the same visitor is not
+     * counted again: probe then download, ranges of a video, preload of a
+     * player, replay.
+     */
+    const DEDUPLICATION_MINUTES = 30;
+
     protected $sortFields = [
         'id' => 'id',
         'url' => 'url',
@@ -1068,6 +1075,29 @@ class HitAdapter extends AbstractEntityAdapter
     /**
      * Determine whether or not the hit is from a bot/webcrawler
      */
+    /**
+     * Check if the current request duplicates a recent hit of the same visitor.
+     *
+     * A file is requested many times for a single view, so only the first
+     * request of a visitor within the deduplication window is a real hit.
+     */
+    public function isRecentHit(?int $minutes = null): bool
+    {
+        $url = substr((string) $this->currentRequest()['url'], 0, 1024);
+        if ($url === '') {
+            return false;
+        }
+        $since = new \DateTime(sprintf('-%d minutes', $minutes ?? self::DEDUPLICATION_MINUTES));
+        return (bool) $this->getServiceLocator()->get('Omeka\Connection')->fetchOne(
+            'SELECT 1 FROM `hit` WHERE `url` = :url AND `ip` = :ip AND `created` >= :since LIMIT 1',
+            [
+                'url' => $url,
+                'ip' => $this->privacyIp(),
+                'since' => $since->format('Y-m-d H:i:s'),
+            ]
+        );
+    }
+
     public function isBot(?string $userAgent): bool
     {
         // For dev purpose.

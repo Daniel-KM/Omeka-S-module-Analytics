@@ -41,13 +41,11 @@ class LogCurrentUrl extends AbstractPlugin
             return null;
         }
 
-        // TODO Log first access to a file in all cases, included when the user does not start at the beginning of a video.
-
         // Log the statistic for the url even if the file is missing or protected.
-        // Log file access only for the first request.
-        $hasRange = !empty($_SERVER['HTTP_RANGE'])
-            && $_SERVER['HTTP_RANGE'] !== 'bytes=0-';
-        if ($hasRange) {
+
+        // A head request is a probe of a file by a player or a bot, not a view.
+        $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+        if ($method === 'HEAD' || $method === 'OPTIONS') {
             return null;
         }
 
@@ -113,6 +111,15 @@ class LogCurrentUrl extends AbstractPlugin
             if ($userAgent && $hitAdapter->isBot($userAgent)) {
                 return null;
             }
+        }
+
+        // A file is requested many times for a single view: probe then
+        // download, ranges of a video, preload of a player, replay. Only the
+        // first request of a visitor within the deduplication window counts.
+        if (in_array($routeName, ['download', 'access-file', 'access-resource-file'])
+            && $hitAdapter->isRecentHit()
+        ) {
+            return null;
         }
 
         $request = new Request(Request::CREATE, 'hits');
