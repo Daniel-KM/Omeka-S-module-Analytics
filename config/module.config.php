@@ -164,11 +164,18 @@ return [
             ],
             'download' => [
                 'type' => \Laminas\Router\Http\Segment::class,
+                // Lower than the route of module Access, that must keep the
+                // control of protected files.
+                'priority' => -10,
                 'options' => [
-                    // See module Access too.
-                    // Manage module Archive repertory, that can use real names and subdirectories.
-                    // For any filename, either use `:filename{?}`, or add a constraint `'filename' => '.+'`.
-                    'route' => '/download/files/:type/:filename{?}',
+                    // See module Access too. Manage module Archive repertory,
+                    // that can use real names and subdirectories. For any
+                    // filename, either use `:filename{?}`, or add a constraint
+                    // `'filename' => '.+'`.
+                    //
+                    // Note: [/download] is optional: with an internal rewrite
+                    // in .htaccess, Apache passes the original url to Omeka.
+                    'route' => '[/download]/files/:type/:filename{?}',
                     'constraints' => [
                         'type' => '[^/]+',
                         'filename' => '.+',
