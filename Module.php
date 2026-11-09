@@ -610,44 +610,23 @@ class Module extends AbstractModule
     }
 
     /**
-     * Detect reverse proxy presence and warn when the trusted_proxies setting
-     * is empty, misconfigured, or when proxy headers look spoofed. Silent when
-     * the configuration is correct or when no proxy headers are present.
+     * Warn when the requests come through a proxy that is not trusted, so the
+     * hits log the ip of the proxy instead of the visitors.
      */
     protected function checkProxyConfig(): void
     {
         $services = $this->getServiceLocator();
-        $settings = $services->get('Omeka\Settings');
-        $messenger = $services->get('ControllerPluginManager')->get('messenger');
-
-        $trusted = (string) $settings->get('analytics_trusted_proxies', '');
-        $resolver = new \Analytics\Stdlib\IpResolver($trusted);
-        $info = $resolver->detect($_SERVER);
-
-        switch ($info['status']) {
-            case 'proxy_likely':
-                $messenger->addWarning(new PsrMessage(
-                    'A reverse proxy seems to forward requests (X-Forwarded-For/X-Real-IP detected from private peer {peer}). To log real client IPs, add {peer} to "Trusted reverse proxies" in the settings below.', // @translate
-                    ['peer' => $info['remoteAddr']]
-                ));
-                break;
-            case 'proxy_misconfigured':
-                $messenger->addWarning(new PsrMessage(
-                    'Trusted reverse proxies setting is set but does not include the current peer {peer}. Proxy headers are ignored, hits log proxy IPs instead of clients. Add {peer} to the trusted list.', // @translate
-                    ['peer' => $info['remoteAddr']]
-                ));
-                break;
-            case 'proxy_spoof_suspected':
-                $messenger->addWarning(new PsrMessage(
-                    'Proxy headers (X-Forwarded-For/X-Real-IP) received from a public, untrusted peer {peer}. Headers are ignored to prevent spoofing. Configure trusted_proxies only if a real reverse proxy sits in front.', // @translate
-                    ['peer' => $info['remoteAddr']]
-                ));
-                break;
-            case 'proxy_ok':
-            case 'no_proxy':
-            default:
-                // Silent: nothing to report.
-                break;
+        if (!$services->has('Omeka\ClientIp')) {
+            return;
+        }
+        $clientIp = $services->get('Omeka\ClientIp');
+        $trusted = $clientIp::normalizeTrustedProxies($services->get('Omeka\Settings')->get('analytics_trusted_proxies', ''));
+        $detected = $clientIp->detect(null, $trusted ?: null);
+        if ($detected['status'] === 'untrusted') {
+            $services->get('ControllerPluginManager')->get('messenger')->addWarning(new PsrMessage(
+                'Proxy headers (X-Forwarded-For/X-Real-IP) are received from {peer}, that is not a trusted proxy, so they are ignored and the hits log the ip of the proxy. If it is the reverse proxy of the server, add it to the trusted reverse proxies of the main settings or below.', // @translate
+                ['peer' => $detected['peer']]
+            ));
         }
     }
 

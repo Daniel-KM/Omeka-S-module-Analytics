@@ -104,7 +104,7 @@ class SettingsFieldset extends Fieldset
                 'options' => [
                     'element_group' => 'analytics',
                     'label' => 'Trusted reverse proxies', // @translate
-                    'info' => 'IPs or CIDR ranges (space or comma separated) of reverse proxies in front of the server. Headers X-Forwarded-For and X-Real-IP are honored only when the direct peer matches this list. Empty disables proxy header trust (safer when no proxy is in front).', // @translate
+                    'info' => 'IPs or CIDR ranges (space or comma separated) of reverse proxies in front of the server, to use instead of the trusted reverse proxies of the main settings. Headers X-Forwarded-For and X-Real-IP are honored only when the direct peer is a trusted proxy. Empty: use the main settings.', // @translate
                 ],
                 'attributes' => [
                     'id' => 'analytics_trusted_proxies',

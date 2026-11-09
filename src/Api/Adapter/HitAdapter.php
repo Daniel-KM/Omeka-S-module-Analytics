@@ -1116,18 +1116,20 @@ class HitAdapter extends AbstractEntityAdapter
     }
 
     /**
-     * Get the ip of the client.
+     * Get the ip of the client, even behind a reverse proxy.
      *
-     * @todo Use the laminas http function.
+     * The trusted proxies of the module take precedence over the main ones.
      */
     public function getClientIp(): string
     {
-        // Honor X-Forwarded-For / X-Real-IP only when the direct peer is a
-        // configured trusted proxy; otherwise rely on REMOTE_ADDR. Prevents
-        // header spoofing when no reverse proxy sits in front of Apache.
-        $trusted = (string) $this->getServiceLocator()->get('Omeka\Settings')
-            ->get('analytics_trusted_proxies', '');
-        return (new \Analytics\Stdlib\IpResolver($trusted))->resolve($_SERVER);
+        $services = $this->getServiceLocator();
+        // The service is missing while the module Common is not upgraded.
+        if (!$services->has('Omeka\ClientIp')) {
+            return (string) ($_SERVER['REMOTE_ADDR'] ?? '::');
+        }
+        $clientIp = $services->get('Omeka\ClientIp');
+        $trusted = $clientIp::normalizeTrustedProxies($services->get('Omeka\Settings')->get('analytics_trusted_proxies', ''));
+        return $clientIp->getIp(null, $trusted ?: null);
     }
 
     /**
