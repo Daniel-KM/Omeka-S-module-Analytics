@@ -990,8 +990,9 @@ class HitAdapter extends AbstractEntityAdapter
             $result['id'] = (int) $routeParams['site_page_id'];
         } elseif (!empty($routeParams['page-slug'])) {
             // The page is already or will be loaded, so it is already fetched.
+            // A slug is unique only inside a site.
             $pageId = $entityManager->getRepository(\Omeka\Entity\SitePage::class)
-                ->findOneBy(['slug' => $routeParams['page-slug']]);
+                ->findOneBy(['slug' => $routeParams['page-slug']] + ($siteId ? ['site' => $siteId] : []));
             if ($pageId) {
                 $result['name'] = 'site_pages';
                 $result['id'] = $pageId->getId();
