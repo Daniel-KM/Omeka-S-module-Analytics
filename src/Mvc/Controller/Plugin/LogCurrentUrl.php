@@ -72,6 +72,8 @@ class LogCurrentUrl extends AbstractPlugin
             'forgot-password',
             // Module Access: check of the rights by the image server.
             'access-authorize',
+            // Module Bot Challenge: technical page, not a view.
+            'bot-challenge',
             // Module CSS Editor.
             'site/css-editor',
         ])) {

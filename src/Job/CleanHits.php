@@ -123,7 +123,7 @@ class CleanHits extends AbstractJob
         // longer hits: the view of an image is its info.json. The past ones
         // are removed and archived too. The regions "full" are kept: they are
         // downloads of the whole image. The checks of rights by the image
-        // server (module Access) are not views either.
+        // server (module Access) and the bot challenge are not views either.
         $logger->info(
             'Searching the hits of the regions of the images.' // @translate
         );
@@ -133,7 +133,7 @@ class CleanHits extends AbstractJob
             'SELECT `id` FROM `hit`
             WHERE `url` REGEXP "/iiif/.+/[0-9]+,[0-9]+,[0-9]+,[0-9]+/[^/]+/[^/]+/[^/.]+\\.[a-zA-Z0-9]+$"
                 OR `url` REGEXP "/(iiif/search|iiif-search)/[^/]+/(annotations|alto|hocr)[/.]"
-                OR `url` = "/authorize"'
+                OR `url` IN ("/authorize", "/bot-challenge")'
         )->fetchFirstColumn();
         sort($regionIds);
         foreach (array_chunk($regionIds, 1000) as $chunk) {
@@ -157,7 +157,7 @@ class CleanHits extends AbstractJob
         }
 
         $logger->notice(
-            'Removal of the hits of the parts of medias (regions of images, alto, annotations and hocr of the pages) and of the checks of rights by the image server: hits removed and archived in the table "hit_duplicate": {count}. The view of an image is its info.json now.', // @translate
+            'Removal of the hits of the parts of medias (regions of images, alto, annotations and hocr of the pages) and of the technical requests (checks of rights, bot challenge): hits removed and archived in the table "hit_duplicate": {count}. The view of an image is its info.json now.', // @translate
             ['count' => $removedRegions]
         );
 
