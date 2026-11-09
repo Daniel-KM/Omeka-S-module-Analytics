@@ -57,6 +57,9 @@ class AggregateHits extends AbstractJob
             ;
             
             # Create stats for resource (page or download).
+            # The entities are merged by url, because the url is unique by type
+            # in the table and distinct entities may share a min url, for
+            # example when old hits use a wrong entity name.
             INSERT INTO `stat` (
                 `type`,
                 `url`,
@@ -68,18 +71,30 @@ class AggregateHits extends AbstractJob
                 `created`,
                 `modified`
             )
-            SELECT DISTINCT
+            SELECT
                 "resource",
-                MIN(`url`),
-                `entity_id`,
-                `entity_name`,
-                COUNT(`id`),
-                SUM(CASE WHEN `user_id` < 1 THEN 1 ELSE 0 END),
-                SUM(CASE WHEN `user_id` > 0 THEN 1 ELSE 0 END),
+                `url`,
+                MAX(`entity_id`),
+                MAX(`entity_name`),
+                SUM(`hits`),
+                SUM(`hits_anonymous`),
+                SUM(`hits_identified`),
                 MIN(`created`),
-                MAX(`created`)
-            FROM `hit`
-            GROUP BY `entity_name`, `entity_id`
+                MAX(`modified`)
+            FROM (
+                SELECT
+                    MIN(`url`) AS `url`,
+                    `entity_id`,
+                    `entity_name`,
+                    COUNT(`id`) AS `hits`,
+                    SUM(CASE WHEN `user_id` < 1 THEN 1 ELSE 0 END) AS `hits_anonymous`,
+                    SUM(CASE WHEN `user_id` > 0 THEN 1 ELSE 0 END) AS `hits_identified`,
+                    MIN(`created`) AS `created`,
+                    MAX(`created`) AS `modified`
+                FROM `hit`
+                GROUP BY `entity_name`, `entity_id`
+            ) AS `by_entity`
+            GROUP BY `url`
             ORDER BY `created` ASC
             ;
             SQL;
