@@ -62,9 +62,9 @@ class CleanHits extends AbstractJob
         $total = 0;
         $pdo = $this->openUnbufferedConnection($connection->getParams());
         $stmt = $pdo->query(
-            'SELECT `id`, `url`, `ip`, `user_agent`, `created` FROM `hit`
+            'SELECT `id`, `url`, `ip`, `user_agent`, `accept_language`, `created` FROM `hit`
             WHERE `url` LIKE "%/files/%"
-            ORDER BY `url`, `ip`, `user_agent`, `created`, `id`'
+            ORDER BY `url`, `ip`, `user_agent`, `accept_language`, `created`, `id`'
         );
         while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
             if (++$total % 100000 === 0) {
@@ -80,7 +80,7 @@ class CleanHits extends AbstractJob
                     ['count' => $total, 'total' => $totalFiles, 'duplicates' => count($toDelete)]
                 );
             }
-            if ($deduplicator->isDuplicate($row['url'], $row['ip'], $row['user_agent'], $row['created'])) {
+            if ($deduplicator->isDuplicate($row['url'], $row['ip'], $row['user_agent'], $row['accept_language'], $row['created'])) {
                 $toDelete[] = (int) $row['id'];
             }
         }
@@ -91,6 +91,10 @@ class CleanHits extends AbstractJob
             'All the hits of files are checked ({total}), duplicates to remove: {duplicates}.', // @translate
             ['total' => $total, 'duplicates' => count($toDelete)]
         );
+
+        // Remove by primary key order: nearly sequential disk accesses, a lot
+        // quicker than the deduplication order on mechanical disks.
+        sort($toDelete);
 
         $removed = 0;
         foreach (array_chunk($toDelete, 1000) as $chunk) {
@@ -126,8 +130,10 @@ class CleanHits extends AbstractJob
         $removedRegions = 0;
         $regionIds = $connection->executeQuery(
             'SELECT `id` FROM `hit`
-            WHERE `url` REGEXP "/iiif/.+/[0-9]+,[0-9]+,[0-9]+,[0-9]+/[^/]+/[^/]+/[^/.]+\\.[a-zA-Z0-9]+$"'
+            WHERE `url` REGEXP "/iiif/.+/[0-9]+,[0-9]+,[0-9]+,[0-9]+/[^/]+/[^/]+/[^/.]+\\.[a-zA-Z0-9]+$"
+                OR `url` REGEXP "/(iiif/search|iiif-search)/[^/]+/(annotations|alto|hocr)[/.]"'
         )->fetchFirstColumn();
+        sort($regionIds);
         foreach (array_chunk($regionIds, 1000) as $chunk) {
             if ($this->shouldStop()) {
                 break;
@@ -149,7 +155,7 @@ class CleanHits extends AbstractJob
         }
 
         $logger->notice(
-            'Removal of the hits of regions of images: hits removed and archived in the table "hit_duplicate": {count}. The view of an image is its info.json now.', // @translate
+            'Removal of the hits of the parts of medias (regions of images, alto, annotations and hocr of the pages): hits removed and archived in the table "hit_duplicate": {count}. The view of an image is its info.json now.', // @translate
             ['count' => $removedRegions]
         );
 

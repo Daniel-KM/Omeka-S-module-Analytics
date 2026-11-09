@@ -9,11 +9,12 @@ namespace Analytics\Stdlib;
  * of a video, preload of a player, replay. Only the first request of a visitor
  * within the deduplication window is a real hit.
  *
- * The hits must be checked ordered by url, ip, user agent and created: a hit
- * is a duplicate when it occurs less than the window after the last kept hit
- * of the same url, ip and user agent. The user agent distinguishes the
- * visitors sharing an ip: reverse proxy not trusted in the past, shared
- * network, anonymized ip.
+ * The hits must be checked ordered by url, ip, user agent, accept language
+ * and created: a hit is a duplicate when it occurs less than the window after
+ * the last kept hit of the same url, ip, user agent and language. The user
+ * agent and the language distinguish the visitors sharing an ip: reverse proxy
+ * not trusted in the past, shared network, and above all anonymized ip, that
+ * is the same for everybody.
  */
 class HitDeduplicator
 {
@@ -38,12 +39,12 @@ class HitDeduplicator
     }
 
     /**
-     * Check a hit against the previous ones, ordered by url, ip, user agent
-     * and created.
+     * Check a hit against the previous ones, ordered by url, ip, user agent,
+     * accept language and created.
      */
-    public function isDuplicate(string $url, string $ip, string $userAgent, string $created): bool
+    public function isDuplicate(string $url, string $ip, string $userAgent, string $acceptLanguage, string $created): bool
     {
-        $key = $url . '|' . $ip . '|' . $userAgent;
+        $key = $url . '|' . $ip . '|' . $userAgent . '|' . $acceptLanguage;
         $time = (int) strtotime($created);
         if ($key === $this->lastKey
             && $time - $this->lastKept < $this->windowSeconds

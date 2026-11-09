@@ -149,6 +149,13 @@ class MvcListeners extends AbstractListenerAggregate
             'mediaserver/media',
             'mediaserver/media-bad',
             'mediaserver/placeholder',
+            // Module Iiif Search: the parts of the pages are loaded
+            // automatically by the viewers.
+            'iiifsearch/alto',
+            'iiifsearch/alto-page',
+            'iiifsearch/annotation-list',
+            'iiifsearch/annotation-page',
+            'iiifsearch/hocr-page',
         ];
         $isFileRoute = in_array($routeName, $fileRoutes);
         if ($isFileRoute || in_array($routeName, $mediaPartRoutes)) {
