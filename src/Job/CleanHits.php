@@ -2,6 +2,7 @@
 
 namespace Analytics\Job;
 
+use Analytics\Stdlib\BotCounter;
 use Analytics\Stdlib\HitDeduplicator;
 use Omeka\Job\AbstractJob;
 
@@ -160,6 +161,12 @@ class CleanHits extends AbstractJob
             'Removal of the hits of the parts of medias (regions of images, alto, annotations and hocr of the pages) and of the technical requests (checks of rights, bot challenge): hits removed and archived in the table "hit_duplicate": {count}. The view of an image is its info.json now.', // @translate
             ['count' => $removedRegions]
         );
+
+        // The archived challenges give the history of the requests of robots.
+        // The table is created here for the sites already upgraded.
+        $botCounter = new BotCounter($connection);
+        $botCounter->createTable();
+        $botCounter->restoreFromArchive();
 
         // Rebuild all the stats from the remaining hits, even without
         // duplicates, so a previously failed rebuild is repaired.

@@ -54,6 +54,25 @@ class BotCounter
     }
 
     /**
+     * Fill the past days from the hits of the challenge that were archived.
+     *
+     * The display of the challenge has the redirect url in its query, not the
+     * answer. The greatest value is kept, so the process can be replayed.
+     */
+    public function restoreFromArchive(): void
+    {
+        $this->connection->executeStatement(
+            'INSERT INTO `analytics_bot_count` (`day`, `type`, `name`, `hits`)
+            SELECT DATE(`created`) AS `day`, IF(`query` IS NULL, ?, ?) AS `type`, "", COUNT(`id`)
+            FROM `hit_duplicate`
+            WHERE `url` = "/bot-challenge"
+            GROUP BY `day`, `type`
+            ON DUPLICATE KEY UPDATE `hits` = GREATEST(`hits`, VALUES(`hits`))',
+            [self::TYPE_SOLVED, self::TYPE_CHALLENGED]
+        );
+    }
+
+    /**
      * Count a request.
      *
      * A counter must never break a page, for example before the upgrade of
