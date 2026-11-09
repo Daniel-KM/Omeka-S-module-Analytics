@@ -7,13 +7,6 @@ use Omeka\Job\AbstractJob;
 
 class CleanHits extends AbstractJob
 {
-    /**
-     * Limit for the loop to avoid heavy sql requests and heavy memory use.
-     *
-     * @var int
-     */
-    const SQL_LIMIT = 50000;
-
     public function perform(): void
     {
         $services = $this->getServiceLocator();
@@ -53,32 +46,53 @@ class CleanHits extends AbstractJob
             return;
         }
 
+        $totalFiles = (int) $connection->fetchOne(
+            'SELECT COUNT(`id`) FROM `hit` WHERE `url` LIKE "%/files/%"'
+        );
+        $logger->info(
+            'Starting deduplication of {total} hits of files (sorting them may be long).', // @translate
+            ['total' => $totalFiles]
+        );
+
+        // A single pass in deduplication order: the sort is done once by the
+        // server and the rows are streamed through an unbuffered connection,
+        // instead of a full sort of the table for each chunk.
         $deduplicator = new HitDeduplicator($minutes * 60);
         $toDelete = [];
         $total = 0;
-        $offset = 0;
-        do {
-            if ($this->shouldStop()) {
-                $logger->warn(
-                    'The job was stopped: no hit was removed.' // @translate
-                );
-                return;
-            }
-            $rows = $connection->executeQuery(
-                'SELECT `id`, `url`, `ip`, `user_agent`, `created` FROM `hit`
-                WHERE `url` LIKE "%/files/%"
-                ORDER BY `url`, `ip`, `user_agent`, `created`, `id`
-                LIMIT ' . self::SQL_LIMIT . ' OFFSET ' . $offset
-            )->fetchAllAssociative();
-            foreach ($rows as $row) {
-                ++$total;
-                if ($deduplicator->isDuplicate($row['url'], $row['ip'], $row['user_agent'], $row['created'])) {
-                    $toDelete[] = (int) $row['id'];
+        $pdo = $this->openUnbufferedConnection($connection->getParams());
+        $stmt = $pdo->query(
+            'SELECT `id`, `url`, `ip`, `user_agent`, `created` FROM `hit`
+            WHERE `url` LIKE "%/files/%"
+            ORDER BY `url`, `ip`, `user_agent`, `created`, `id`'
+        );
+        while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+            if (++$total % 100000 === 0) {
+                if ($this->shouldStop()) {
+                    $stmt->closeCursor();
+                    $logger->warn(
+                        'The job was stopped: no hit was removed.' // @translate
+                    );
+                    return;
                 }
+                $logger->info(
+                    '{count}/{total} hits of files checked, duplicates found so far: {duplicates}.', // @translate
+                    ['count' => $total, 'total' => $totalFiles, 'duplicates' => count($toDelete)]
+                );
             }
-            $offset += self::SQL_LIMIT;
-        } while (count($rows) === self::SQL_LIMIT);
+            if ($deduplicator->isDuplicate($row['url'], $row['ip'], $row['user_agent'], $row['created'])) {
+                $toDelete[] = (int) $row['id'];
+            }
+        }
+        $stmt->closeCursor();
+        $pdo = null;
 
+        $logger->info(
+            'All the hits of files are checked ({total}), duplicates to remove: {duplicates}.', // @translate
+            ['total' => $total, 'duplicates' => count($toDelete)]
+        );
+
+        $removed = 0;
         foreach (array_chunk($toDelete, 1000) as $chunk) {
             $ids = implode(',', $chunk);
             $connection->executeStatement(
@@ -87,10 +101,17 @@ class CleanHits extends AbstractJob
             $connection->executeStatement(
                 'DELETE FROM `hit` WHERE `id` IN (' . $ids . ')'
             );
+            $removed += count($chunk);
+            if ($removed % 50000 === 0) {
+                $logger->info(
+                    '{count}/{total} duplicates removed.', // @translate
+                    ['count' => $removed, 'total' => count($toDelete)]
+                );
+            }
         }
 
         $logger->notice(
-            'Deduplication of the hits of files: {count} duplicates removed among {total} hits of files. The removed hits are archived in the table "hit_duplicate": check them, then empty it, or restore them with "INSERT INTO hit SELECT * FROM hit_duplicate".', // @translate
+            'Deduplication of the hits of files: duplicates removed: {count}, among {total} hits of files. The removed hits are archived in the table "hit_duplicate": check them, then empty it, or restore them with "INSERT INTO hit SELECT * FROM hit_duplicate".', // @translate
             ['count' => count($toDelete), 'total' => $total]
         );
 
@@ -98,41 +119,72 @@ class CleanHits extends AbstractJob
         // longer hits: the view of an image is its info.json. The past ones
         // are removed and archived too. The regions "full" are kept: they are
         // downloads of the whole image.
+        $logger->info(
+            'Searching the hits of the regions of the images.' // @translate
+        );
+
         $removedRegions = 0;
-        do {
+        $regionIds = $connection->executeQuery(
+            'SELECT `id` FROM `hit`
+            WHERE `url` REGEXP "/iiif/.+/[0-9]+,[0-9]+,[0-9]+,[0-9]+/[^/]+/[^/]+/[^/.]+\\.[a-zA-Z0-9]+$"'
+        )->fetchFirstColumn();
+        foreach (array_chunk($regionIds, 1000) as $chunk) {
             if ($this->shouldStop()) {
                 break;
             }
-            $ids = $connection->executeQuery(
-                'SELECT `id` FROM `hit`
-                WHERE `url` REGEXP "/iiif/.+/[0-9]+,[0-9]+,[0-9]+,[0-9]+/[^/]+/[^/]+/[^/.]+\\.[a-zA-Z0-9]+$"
-                LIMIT 1000'
-            )->fetchFirstColumn();
-            if (!$ids) {
-                break;
-            }
-            $in = implode(',', array_map('intval', $ids));
+            $in = implode(',', array_map('intval', $chunk));
             $connection->executeStatement(
                 'INSERT INTO `hit_duplicate` SELECT * FROM `hit` WHERE `id` IN (' . $in . ')'
             );
             $connection->executeStatement(
                 'DELETE FROM `hit` WHERE `id` IN (' . $in . ')'
             );
-            $removedRegions += count($ids);
-        } while (true);
+            $removedRegions += count($chunk);
+            if ($removedRegions % 50000 === 0) {
+                $logger->info(
+                    '{count}/{total} hits of regions removed.', // @translate
+                    ['count' => $removedRegions, 'total' => count($regionIds)]
+                );
+            }
+        }
 
         $logger->notice(
-            'Removal of the hits of regions of images: {count} hits removed and archived in the table "hit_duplicate". The view of an image is its info.json now.', // @translate
+            'Removal of the hits of regions of images: hits removed and archived in the table "hit_duplicate": {count}. The view of an image is its info.json now.', // @translate
             ['count' => $removedRegions]
         );
 
         // Rebuild all the stats from the remaining hits, even without
         // duplicates, so a previously failed rebuild is repaired.
+        $logger->info(
+            'Rebuilding the statistics from the remaining hits.' // @translate
+        );
         $aggregateHits = new AggregateHits($this->job, $services);
         $aggregateHits->perform();
 
         // Hide the checkbox of the main settings once the cleaning was done.
         $services->get('Omeka\Settings')
             ->set('analytics_clean_hits_done', date('Y-m-d\TH:i:s'));
+    }
+
+    /**
+     * Open an unbuffered connection to stream a big sorted result with a low
+     * memory use, without loading it in the php client.
+     */
+    protected function openUnbufferedConnection(array $params): \PDO
+    {
+        $dsn = 'mysql:';
+        if (!empty($params['unix_socket'])) {
+            $dsn .= 'unix_socket=' . $params['unix_socket'];
+        } else {
+            $dsn .= 'host=' . ($params['host'] ?? 'localhost');
+            if (!empty($params['port'])) {
+                $dsn .= ';port=' . $params['port'];
+            }
+        }
+        $dsn .= ';dbname=' . $params['dbname'] . ';charset=utf8mb4';
+        return new \PDO($dsn, $params['user'] ?? null, $params['password'] ?? null, [
+            \PDO::MYSQL_ATTR_USE_BUFFERED_QUERY => false,
+            \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
+        ]);
     }
 }
