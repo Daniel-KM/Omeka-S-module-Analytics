@@ -843,7 +843,7 @@ class Module extends AbstractModule
                 ],
                 'db_analytics_clean_hits' => [
                     'name' => 'Analytics: Clean hits', // @translate
-                    'description' => 'Deduplicate the past hits of files (same visitor within the deduplication window) and remove the hits of the regions of the images (tiles), then rebuild the statistics. The counts of files and images will decrease. The removed hits are archived in the table "hit_duplicate", to check then to empty, or to restore.', // @translate
+                    'description' => 'Deduplicate the past hits of files (same visitor within the deduplication window) and remove the hits of the regions of the images (tiles) and of the checks of rights by the image server, then rebuild the statistics. The counts of files and images will decrease. The removed hits are archived in the table "hit_duplicate", to check then to empty, or to restore.', // @translate
                     'actions' => [
                         'db_analytics_clean_hits' => 'Clean', // @translate
                     ],

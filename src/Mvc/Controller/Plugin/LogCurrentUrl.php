@@ -70,6 +70,8 @@ class LogCurrentUrl extends AbstractPlugin
             'logout',
             'create-password',
             'forgot-password',
+            // Module Access: check of the rights by the image server.
+            'access-authorize',
             // Module CSS Editor.
             'site/css-editor',
         ])) {
