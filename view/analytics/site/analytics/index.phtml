@@ -131,11 +131,11 @@ $typeStat = $userStatus === 'hits' ? 'total' : $userStatus;
 
 <?php if (isset($results['most_frequent_fields'])):
     $labels = [
-        'referrer' => $translate('Most frequent external referrers'),
-        'query' =>$translate('Most frequent queries'),
-        'accept_language' => $translate('Most frequent accepted languages'),
-        'language' => $translate('Most frequent languages'),
-        'user_agent' => $translate('Most frequent browsers'),
+        'referrer' => $translate('Most frequent external referrers (last 30 days)'),
+        'query' => $translate('Most frequent queries (last 30 days)'),
+        'accept_language' => $translate('Most frequent accepted languages (last 30 days)'),
+        'language' => $translate('Most frequent languages (last 30 days)'),
+        'user_agent' => $translate('Most frequent browsers (last 30 days)'),
     ];
     foreach ($results['most_frequent_fields'] as $field => $result): ?>
     <div>

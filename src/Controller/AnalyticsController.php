@@ -90,11 +90,14 @@ class AnalyticsController extends AbstractActionController
             $results['most_viewed_resources'] = $analytics->mostViewedResources(null, $this->userStatus, 1, 10);
             $results['most_viewed_item_sets'] = $analytics->mostViewedResources('item_sets', $this->userStatus, 1, 10);
             $results['most_viewed_downloads'] = $analytics->mostViewedDownloads($this->userStatus, 1, 10);
-            $results['most_frequent_fields']['referrer'] = $analytics->mostFrequents('referrer', $this->userStatus, 1, 10);
-            $results['most_frequent_fields']['query'] = $analytics->mostFrequents('query', $this->userStatus, 1, 10);
-            $results['most_frequent_fields']['user_agent'] = $analytics->mostFrequents('user_agent', $this->userStatus, 1, 10);
-            // $results['most_frequent_fields']['accept_language'] = $analytics->mostFrequents('accept_language', $this->userStatus, 1, 10);
-            $results['most_frequent_fields']['language'] = $analytics->mostFrequents('language', $this->userStatus, 1, 10);
+            // The most frequent fields are computed on the hits, so they are
+            // limited to a recent period.
+            $since = date('Y-m-d', strtotime('-30 days'));
+            $results['most_frequent_fields']['referrer'] = $analytics->mostFrequents('referrer', $this->userStatus, 1, 10, $since);
+            $results['most_frequent_fields']['query'] = $analytics->mostFrequents('query', $this->userStatus, 1, 10, $since);
+            $results['most_frequent_fields']['user_agent'] = $analytics->mostFrequents('user_agent', $this->userStatus, 1, 10, $since);
+            // $results['most_frequent_fields']['accept_language'] = $analytics->mostFrequents('accept_language', $this->userStatus, 1, 10, $since);
+            $results['most_frequent_fields']['language'] = $analytics->mostFrequents('language', $this->userStatus, 1, 10, $since);
             // Make json results utf-8.
             foreach ($results['most_frequent_fields']['query'] as &$val) {
                 $val['query'] = json_encode(json_decode($val['query'], true), 320);

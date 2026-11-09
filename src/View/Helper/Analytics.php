@@ -856,13 +856,15 @@ class Analytics extends AbstractHelper
      * @param string $userStatus Can be hits (default), anonymous or identified.
      * @param int $page Page to retrieve.
      * @param int $limit Number of objects to return per "page".
+     * @param string $since Limit to the hits since this date.
      * @return array Data and total of the according total hits
      */
-    public function mostFrequents(string $field, ?string $userStatus = null, ?int $page = null, ?int $limit = null): array
+    public function mostFrequents(string $field, ?string $userStatus = null, ?int $page = null, ?int $limit = null, ?string $since = null): array
     {
         $query = [];
         $query['field'] = $field;
         $query['user_status'] = $userStatus;
+        $query['since'] = $since;
         $query['sort_field'] = [
             'hits' => 'DESC',
             // This sort is needed in order to manage ex-aequos.
