@@ -114,6 +114,18 @@ class SettingsFieldset extends Fieldset
                 ],
             ])
             ->add([
+                'name' => 'analytics_segments',
+                'type' => Element\Checkbox::class,
+                'options' => [
+                    'element_group' => 'analytics',
+                    'label' => 'Record the requested zones of images and parts of audio and video files (heat map)', // @translate
+                    'info' => 'The requests of the tiles of the images and the partial requests of the audio and video files are aggregated by month in the table "analytics_segment", to identify the most viewed zones and the most played parts. They are never counted as hits.', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'analytics_segments',
+                ],
+            ])
+            ->add([
                 'name' => 'analytics_include_bots',
                 'type' => Element\Checkbox::class,
                 'options' => [

@@ -5,7 +5,7 @@ namespace Analytics\Job;
 use Analytics\Stdlib\HitDeduplicator;
 use Omeka\Job\AbstractJob;
 
-class DeduplicateFileHits extends AbstractJob
+class CleanHits extends AbstractJob
 {
     /**
      * Limit for the loop to avoid heavy sql requests and heavy memory use.
@@ -92,6 +92,38 @@ class DeduplicateFileHits extends AbstractJob
         $logger->notice(
             'Deduplication of the hits of files: {count} duplicates removed among {total} hits of files. The removed hits are archived in the table "hit_duplicate": check them, then empty it, or restore them with "INSERT INTO hit SELECT * FROM hit_duplicate".', // @translate
             ['count' => count($toDelete), 'total' => $total]
+        );
+
+        // The requests of the regions of the images (tiles, zones) are no
+        // longer hits: the view of an image is its info.json. The past ones
+        // are removed and archived too. The regions "full" are kept: they are
+        // downloads of the whole image.
+        $removedRegions = 0;
+        do {
+            if ($this->shouldStop()) {
+                break;
+            }
+            $ids = $connection->executeQuery(
+                'SELECT `id` FROM `hit`
+                WHERE `url` REGEXP "/iiif/.+/[0-9]+,[0-9]+,[0-9]+,[0-9]+/[^/]+/[^/]+/[^/.]+\\.[a-zA-Z0-9]+$"
+                LIMIT 1000'
+            )->fetchFirstColumn();
+            if (!$ids) {
+                break;
+            }
+            $in = implode(',', array_map('intval', $ids));
+            $connection->executeStatement(
+                'INSERT INTO `hit_duplicate` SELECT * FROM `hit` WHERE `id` IN (' . $in . ')'
+            );
+            $connection->executeStatement(
+                'DELETE FROM `hit` WHERE `id` IN (' . $in . ')'
+            );
+            $removedRegions += count($ids);
+        } while (true);
+
+        $logger->notice(
+            'Removal of the hits of regions of images: {count} hits removed and archived in the table "hit_duplicate". The view of an image is its info.json now.', // @translate
+            ['count' => $removedRegions]
         );
 
         // Rebuild all the stats from the remaining hits, even without

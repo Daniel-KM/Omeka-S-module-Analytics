@@ -113,12 +113,49 @@ class LogCurrentUrl extends AbstractPlugin
             }
         }
 
+        // The requests of the parts of a media are not hits: the view of an
+        // image is its info.json and the view of a file is its download. The
+        // requested parts may be aggregated as segments (option).
+        $fileRoutes = ['download', 'access-file', 'access-resource-file'];
+        $mediaPartRoutes = [
+            'imageserver/id',
+            'imageserver/media',
+            'imageserver/media-bad',
+            'imageserver/placeholder',
+            'imageserver/resolve',
+            'mediaserver/id',
+            'mediaserver/media',
+            'mediaserver/media-bad',
+            'mediaserver/placeholder',
+        ];
+        $isFileRoute = in_array($routeName, $fileRoutes);
+        if ($isFileRoute || in_array($routeName, $mediaPartRoutes)) {
+            /** @var \Analytics\Stdlib\SegmentRecorder $segmentRecorder */
+            $segmentRecorder = $this->services->get('Analytics\SegmentRecorder');
+            if ($isFileRoute && $segmentRecorder->isEnabled()) {
+                $entity = $hitAdapter->currentEntity();
+                if ($entity['id']) {
+                    $slice = $this->currentTimeSlice($routeMatch);
+                    if ($slice !== null) {
+                        $segmentRecorder->record(
+                            $entity['name'],
+                            $entity['id'],
+                            \Analytics\Stdlib\SegmentRecorder::TYPE_TIME,
+                            [$slice]
+                        );
+                    }
+                }
+            }
+            if (!$isFileRoute) {
+                // The regions of the images are recorded by the image server.
+                return null;
+            }
+        }
+
         // A file is requested many times for a single view: probe then
         // download, ranges of a video, preload of a player, replay. Only the
         // first request of a visitor within the deduplication window counts.
-        if (in_array($routeName, ['download', 'access-file', 'access-resource-file'])
-            && $hitAdapter->isRecentHit()
-        ) {
+        if ($isFileRoute && $hitAdapter->isRecentHit()) {
             return null;
         }
 
@@ -144,4 +181,27 @@ class LogCurrentUrl extends AbstractPlugin
             return null;
         }
     }
+
+    /**
+     * Slice of the requested file for the byte offset of the current request.
+     */
+    protected function currentTimeSlice($routeMatch): ?int
+    {
+        $type = (string) $routeMatch->getParam('type');
+        $filename = (string) $routeMatch->getParam('filename');
+        if ($type === '' || $filename === '' || strpos($filename, '..') !== false) {
+            return null;
+        }
+        $config = $this->services->get('Config');
+        $basePath = $config['file_store']['local']['base_path'] ?: (OMEKA_PATH . '/files');
+        $filepath = $basePath . '/' . $type . '/' . $filename;
+        $fileSize = file_exists($filepath) ? (int) filesize($filepath) : 0;
+        $offset = 0;
+        $range = (string) ($_SERVER['HTTP_RANGE'] ?? '');
+        if (preg_match('~^bytes=(\d+)-~', $range, $matches)) {
+            $offset = (int) $matches[1];
+        }
+        return (new \Analytics\Stdlib\SegmentBucketer())->timeSlice($offset, $fileSize);
+    }
+
 }

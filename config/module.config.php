@@ -7,6 +7,9 @@ return [
         'invokables' => [
             Mvc\MvcListeners::class => Mvc\MvcListeners::class,
         ],
+        'factories' => [
+            'Analytics\SegmentRecorder' => Service\Stdlib\SegmentRecorderFactory::class,
+        ],
     ],
     'listeners' => [
         Mvc\MvcListeners::class,
@@ -218,6 +221,9 @@ return [
             'analytics_ip_salt' => '',
             'analytics_include_bots' => false,
             'analytics_deduplication_minutes' => 30,
+            // Record the requested zones of the images and parts of the audio
+            // and video files, as a heat map.
+            'analytics_segments' => false,
             // Trusted reverse proxies (IPs or CIDR, space/comma separated).
             // X-Forwarded-For / X-Real-IP are honored only when the direct peer
             // (REMOTE_ADDR) matches this list. Empty = no proxy trusted.

@@ -1107,6 +1107,18 @@ class HitAdapter extends AbstractEntityAdapter
     }
 
     /**
+     * Entity of the current request (name and id), resolved from the route.
+     */
+    public function currentEntity(): array
+    {
+        $data = $this->currentDataFromRoute();
+        return [
+            'name' => (string) $data['name'],
+            'id' => (int) $data['id'],
+        ];
+    }
+
+    /**
      * Minutes of the deduplication window of the hits of files.
      */
     public function deduplicationMinutes(): int

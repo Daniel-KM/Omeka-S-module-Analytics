@@ -50,3 +50,16 @@ CREATE TABLE `stat` (
     UNIQUE INDEX UNIQ_20B8FF218CDE5729F47645AE (`type`, `url`(759)),
     PRIMARY KEY(`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB;
+
+CREATE TABLE `analytics_segment` (
+    `id` INT AUTO_INCREMENT NOT NULL,
+    `entity_name` VARCHAR(190) DEFAULT '' NOT NULL,
+    `entity_id` INT DEFAULT 0 NOT NULL,
+    `type` VARCHAR(8) NOT NULL,
+    `bucket` SMALLINT DEFAULT 0 NOT NULL,
+    `period` INT DEFAULT 0 NOT NULL,
+    `hits` INT DEFAULT 0 NOT NULL,
+    UNIQUE INDEX UNIQ_ANALYTICS_SEGMENT (`entity_name`, `entity_id`, `type`, `bucket`, `period`),
+    INDEX IDX_ANALYTICS_SEGMENT_ENTITY (`entity_id`, `entity_name`),
+    PRIMARY KEY(`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB;
