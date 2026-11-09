@@ -214,6 +214,8 @@ return [
 
             // Privacy settings.
             'analytics_privacy' => 'anonymous',
+            // Secret salt of the hashed ips, created at the first hit.
+            'analytics_ip_salt' => '',
             'analytics_include_bots' => false,
             // Trusted reverse proxies (IPs or CIDR, space/comma separated).
             // X-Forwarded-For / X-Real-IP are honored only when the direct peer

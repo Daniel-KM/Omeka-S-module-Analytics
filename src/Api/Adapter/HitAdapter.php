@@ -1125,24 +1125,58 @@ class HitAdapter extends AbstractEntityAdapter
             case 'anonymous':
                 return '::';
             case 'hashed':
-                return md5($ip);
+                return $this->hashedIp($ip);
             case 'partial_1':
-                $partial = explode('.', $ip);
-                $partial[1] = '---';
-                $partial[2] = '---';
-                $partial[3] = '---';
-                return implode('.', $partial);
+                return $this->partialIp($ip, 1);
             case 'partial_2':
-                $partial = explode('.', $ip);
-                $partial[2] = '---';
-                $partial[3] = '---';
-                return implode('.', $partial);
+                return $this->partialIp($ip, 2);
             case 'partial_3':
-                $partial = explode('.', $ip);
-                $partial[3] = '---';
-                return implode('.', $partial);
+                return $this->partialIp($ip, 3);
             case 'clear':
                 return $ip;
         }
+    }
+
+    /**
+     * Hash an ip with a secret salt of the site.
+     *
+     * A plain hash of an ip is reversible, because the whole ipv4 space can be
+     * hashed in seconds, so a keyed hash with a local random salt is used: the
+     * visitors are still distinguished, but the ip cannot be recovered without
+     * the salt.
+     */
+    public function hashedIp(string $ip): string
+    {
+        $settings = $this->getServiceLocator()->get('Omeka\Settings');
+        $salt = (string) $settings->get('analytics_ip_salt');
+        if ($salt === '') {
+            $salt = bin2hex(random_bytes(32));
+            $settings->set('analytics_ip_salt', $salt);
+        }
+        return hash_hmac('md5', $ip, $salt);
+    }
+
+    /**
+     * Keep only the first parts of an ip: octets of an ipv4 or hexadecimal
+     * groups of an ipv6, that was previously kept whole in partial modes.
+     */
+    public function partialIp(string $ip, int $parts): string
+    {
+        if (strpos($ip, ':') !== false) {
+            $bin = @inet_pton($ip);
+            if ($bin === false || strlen($bin) !== 16) {
+                return '::';
+            }
+            $groups = str_split(bin2hex($bin), 4);
+            return implode(':', array_slice($groups, 0, $parts)) . ':---';
+        }
+        $partial = explode('.', $ip);
+        if (count($partial) !== 4) {
+            return '::';
+        }
+        for ($i = $parts; $i < 4; $i++) {
+            $partial[$i] = '---';
+        }
+        return implode('.', $partial);
     }
 }
