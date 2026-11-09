@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-06 00:00+0000\n"
+"POT-Creation-Date: 2026-11-09 08:45+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: data/scripts/upgrade.php:29 Module.php:99
+#: data/scripts/upgrade.php:29 Module.php:153
 #, php-format
 msgid "The module %1$s should be upgraded to version %2$s or later."
 msgstr ""
@@ -26,12 +26,12 @@ msgstr ""
 msgid "Missing requirement. Unable to upgrade."
 msgstr ""
 
-#: data/scripts/upgrade.php:40 Module.php:91
+#: data/scripts/upgrade.php:40 Module.php:145
 #, php-format
 msgid "The module %1$s requires PHP %2$s or later."
 msgstr ""
 
-#: Module.php:331 Module.php:402 view/analytics/admin/analytics/index.phtml:20
+#: Module.php:385 Module.php:456 view/analytics/admin/analytics/index.phtml:20
 #: view/analytics/site/analytics/by-field.phtml:39
 #: view/analytics/site/analytics/by-hit.phtml:52
 #: view/analytics/site/analytics/by-item-set.phtml:37
@@ -41,39 +41,39 @@ msgstr ""
 msgid "Analytics"
 msgstr ""
 
-#: Module.php:352
+#: Module.php:406
 #, php-format
 msgid "Views: %d (anonymous: %d / users: %d)"
 msgstr ""
 
-#: Module.php:360
+#: Module.php:414
 #, php-format
 msgid "Position: %d (anonymous: %d / users: %d)"
 msgstr ""
 
-#: Module.php:410 view/analytics/site/analytics/index.phtml:26
+#: Module.php:464 view/analytics/site/analytics/index.phtml:26
 #, php-format
 msgid "Total Hits: %d"
 msgstr ""
 
-#: Module.php:412
+#: Module.php:466
 msgid "Last 30 days"
 msgstr ""
 
-#: Module.php:413
+#: Module.php:467
 msgid "Last 7 days"
 msgstr ""
 
-#: Module.php:414 src/Controller/AnalyticsController.php:81
+#: Module.php:468 src/Controller/AnalyticsController.php:82
 msgid "Last 24 hours"
 msgstr ""
 
-#: Module.php:433 view/analytics/admin/analytics/index.phtml:74
+#: Module.php:487 view/analytics/admin/analytics/index.phtml:74
 #: view/analytics/site/analytics/index.phtml:62
 msgid "Most viewed public pages"
 msgstr ""
 
-#: Module.php:444 Module.php:462 Module.php:478
+#: Module.php:498 Module.php:516 Module.php:532
 #: view/analytics/site/analytics/index.phtml:68
 #: view/analytics/site/analytics/index.phtml:86
 #: view/analytics/site/analytics/index.phtml:104
@@ -82,36 +82,36 @@ msgstr ""
 msgid "%s (%d views)"
 msgstr ""
 
-#: Module.php:454
+#: Module.php:508
 msgid "Most viewed public item"
 msgstr ""
 
-#: Module.php:470
+#: Module.php:524
 msgid "Most viewed public item set"
 msgstr ""
 
-#: Module.php:486
+#: Module.php:540
 msgid "Most downloaded file"
 msgstr ""
 
-#: Module.php:494 view/analytics/site/analytics/index.phtml:122
+#: Module.php:548 view/analytics/site/analytics/index.phtml:122
 #, php-format
 msgid "%s (%d downloads)"
 msgstr ""
 
-#: Module.php:502
+#: Module.php:556
 msgid "Most frequent fields"
 msgstr ""
 
-#: Module.php:506
+#: Module.php:560
 msgid "Referrer"
 msgstr ""
 
-#: Module.php:508
+#: Module.php:562
 msgid "User Agent"
 msgstr ""
 
-#: Module.php:515
+#: Module.php:569
 #, php-format
 msgid "%s: None"
 msgstr ""
@@ -120,90 +120,90 @@ msgstr ""
 msgid "[untitled]"
 msgstr ""
 
-#: src/Controller/AnalyticsController.php:52
+#: src/Controller/AnalyticsController.php:53
 msgid "Last year"
 msgstr ""
 
-#: src/Controller/AnalyticsController.php:56
+#: src/Controller/AnalyticsController.php:57
 msgid "Last month"
 msgstr ""
 
-#: src/Controller/AnalyticsController.php:60
+#: src/Controller/AnalyticsController.php:61
 msgid "Last week"
 msgstr ""
 
-#: src/Controller/AnalyticsController.php:64
+#: src/Controller/AnalyticsController.php:65
 msgid "Yesterday"
 msgstr ""
 
-#: src/Controller/AnalyticsController.php:69
+#: src/Controller/AnalyticsController.php:70
 msgid "This year"
 msgstr ""
 
-#: src/Controller/AnalyticsController.php:71
+#: src/Controller/AnalyticsController.php:72
 msgid "This month"
 msgstr ""
 
-#: src/Controller/AnalyticsController.php:73
+#: src/Controller/AnalyticsController.php:74
 msgid "This week"
 msgstr ""
 
-#: src/Controller/AnalyticsController.php:75
+#: src/Controller/AnalyticsController.php:76
 msgid "This day"
 msgstr ""
 
-#: src/Controller/AnalyticsController.php:82
+#: src/Controller/AnalyticsController.php:83
 #, php-format
 msgid "Last %s days"
 msgstr ""
 
-#: src/Controller/AnalyticsController.php:243
+#: src/Controller/AnalyticsController.php:252
 #, php-format
 msgid "[Removed site #%d]"
 msgstr ""
 
-#: src/Controller/AnalyticsController.php:801
+#: src/Controller/AnalyticsController.php:821
 msgid "External Referrers"
 msgstr ""
 
-#: src/Controller/AnalyticsController.php:804
+#: src/Controller/AnalyticsController.php:824
 msgid "Queries"
 msgstr ""
 
-#: src/Controller/AnalyticsController.php:807
+#: src/Controller/AnalyticsController.php:827
 msgid "Browsers"
 msgstr ""
 
-#: src/Controller/AnalyticsController.php:810
+#: src/Controller/AnalyticsController.php:830
 msgid "Full Accepted Languages"
 msgstr ""
 
-#: src/Controller/AnalyticsController.php:813
+#: src/Controller/AnalyticsController.php:833
 msgid "Accepted Languages"
 msgstr ""
 
-#: src/Controller/AnalyticsController.php:922
+#: src/Controller/AnalyticsController.php:942
 #, php-format
 msgid "[Removed item set #%d]"
 msgstr ""
 
-#: src/View/Helper/Analytics.php:1333
+#: src/View/Helper/Analytics.php:1335
 msgid "Annotation"
 msgstr ""
 
-#: src/View/Helper/Analytics.php:1364
+#: src/View/Helper/Analytics.php:1366
 msgid "anonymous users"
 msgstr ""
 
-#: src/View/Helper/Analytics.php:1366
+#: src/View/Helper/Analytics.php:1368
 msgid "identified users"
 msgstr ""
 
-#: src/View/Helper/Analytics.php:1369
+#: src/View/Helper/Analytics.php:1371
 msgid "all users"
 msgstr ""
 
-#: src/View/Helper/Analytics.php:1659
+#: src/View/Helper/Analytics.php:1661
 msgid "None."
 msgstr ""
 
@@ -264,29 +264,29 @@ msgstr ""
 msgid "%s (%d downloads [%d / %d])"
 msgstr ""
 
-#: view/analytics/admin/analytics/index.phtml:154
-#: view/analytics/site/analytics/index.phtml:134
-msgid "Most frequent external referrers"
-msgstr ""
-
-#: view/analytics/admin/analytics/index.phtml:155
-#: view/analytics/site/analytics/index.phtml:135
-msgid "Most frequent queries"
-msgstr ""
-
-#: view/analytics/admin/analytics/index.phtml:156
-#: view/analytics/site/analytics/index.phtml:136
-msgid "Most frequent accepted languages"
-msgstr ""
-
-#: view/analytics/admin/analytics/index.phtml:157
-#: view/analytics/site/analytics/index.phtml:137
-msgid "Most frequent languages"
-msgstr ""
-
 #: view/analytics/admin/analytics/index.phtml:158
+#: view/analytics/site/analytics/index.phtml:134
+msgid "Most frequent external referrers (last 30 days)"
+msgstr ""
+
+#: view/analytics/admin/analytics/index.phtml:159
+#: view/analytics/site/analytics/index.phtml:135
+msgid "Most frequent queries (last 30 days)"
+msgstr ""
+
+#: view/analytics/admin/analytics/index.phtml:160
+#: view/analytics/site/analytics/index.phtml:136
+msgid "Most frequent accepted languages (last 30 days)"
+msgstr ""
+
+#: view/analytics/admin/analytics/index.phtml:161
+#: view/analytics/site/analytics/index.phtml:137
+msgid "Most frequent languages (last 30 days)"
+msgstr ""
+
+#: view/analytics/admin/analytics/index.phtml:162
 #: view/analytics/site/analytics/index.phtml:138
-msgid "Most frequent browsers"
+msgid "Most frequent browsers (last 30 days)"
 msgstr ""
 
 #: view/analytics/site/analytics/by-field.phtml:39
@@ -415,6 +415,22 @@ msgstr ""
 msgid "Today: %d"
 msgstr ""
 
+#: view/common/analytics-bots.phtml:17
+msgid "Robots (last 30 days)"
+msgstr ""
+
+#: view/common/analytics-bots.phtml:18
+#, php-format
+msgid ""
+"About %1$d requests of robots, not counted in the hits [%2$d challenges, "
+"%3$d answers, %4$d declared robots]."
+msgstr ""
+
+#: view/common/analytics-bots.phtml:27
+#, php-format
+msgid "%1$s (%2$d requests)"
+msgstr ""
+
 #: view/common/analytics-nav.phtml:24
 msgid "By page"
 msgstr ""
@@ -477,92 +493,358 @@ msgid ""
 "settings. Detected file types: {types}."
 msgstr ""
 
-#: Module.php:55
+#: data/scripts/upgrade.php:102
+msgid ""
+"When the server sits behind a reverse proxy, add the IPs/CIDR of the proxy "
+"to the trusted reverse proxies, in the security section of the main "
+"settings, to track real client IPs through X-Forwarded-For / X-Real-IP."
+msgstr ""
+
+#: data/scripts/upgrade.php:105
+msgid "It is recommended to check config if the server is behind a proxy."
+msgstr ""
+
+#: data/scripts/upgrade.php:108
+msgid ""
+"The .htaccess download tracking rule now coexists with the module Access "
+"rule. Types handled by Access are tracked through the Access dispatch; "
+"remaining types keep their own Analytics rule. Open the module settings and "
+"save once to refresh the .htaccess if needed."
+msgstr ""
+
+#: data/scripts/upgrade.php:124
+#, php-format
+msgid ""
+"The trusted reverse proxies are now managed in the security section of the "
+"main settings and apply to all modules, including the ones that grant rights "
+"or lock out by ip. Check that each one is a reverse proxy of the server: %s."
+msgstr ""
+
+#: data/scripts/upgrade.php:149
+msgid ""
+"The hashed ips were reversible, because the whole ipv4 space can be hashed "
+"in seconds: {count} past hits are anonymized now. The new hits use a hash "
+"with a secret salt of the site."
+msgstr ""
+
+#: data/scripts/upgrade.php:163
+msgid ""
+"In partial privacy modes, the ipv6 of the visitors were stored whole: "
+"{count} past hits are anonymized now. The new hits keep only the first "
+"groups of the ipv6."
+msgstr ""
+
+#: data/scripts/upgrade.php:188
+msgid ""
+"The hits of files are now deduplicated: the probe, the ranges of an audio or "
+"video file, the preload of a player and the replays by the same visitor "
+"(same ip, user agent and language) within {minutes} minutes count as a "
+"single hit. Head requests and requests of regions of images (tiles) are no "
+"longer counted: the view of an image is its info.json. A new option allows "
+"to aggregate the requested zones of the images and the played parts of the "
+"audio and video files, as a heat map."
+msgstr ""
+
+#: data/scripts/upgrade.php:194
+msgid ""
+"The past statistics of files and images remain overcounted until you run the "
+"task \"Analytics: Clean hits\", available as a checkbox in the main settings "
+"and in the module Easy Admin: it deduplicates the past hits of files, "
+"removes the hits of the regions of the images, and rebuilds the statistics, "
+"so the counts of files and images will decrease. The removed hits are "
+"archived in the table \"hit_duplicate\", to check then to empty, or to "
+"restore."
+msgstr ""
+
+#: data/scripts/upgrade.php:237
+msgid ""
+"The job #{job_id} is still starting. It may need to be relaunched manually "
+"with the task \"Analytics: Update indexes\" of the module Easy Admin."
+msgstr ""
+
+#: data/scripts/upgrade.php:250
+msgid ""
+"The indexes of the table of hits are being updated in a background job "
+"(#{job_id}): a composite index on the url and the date is added, then the "
+"useless indexes (ip, referrer, user agent, accepted languages) are removed, "
+"so the recording of the hits is quicker. It may take a long time on a big "
+"table, but the site remains available."
+msgstr ""
+
+#: Module.php:73
 msgid ""
 "The tables from the module Statistics were found and will be reused by the "
 "module Analytics."
 msgstr ""
 
-#: Module.php:62
+#: Module.php:77
+msgid ""
+"Run the task \"Analytics: Update indexes\" of the module Easy Admin to "
+"update the indexes of these tables, so the recording of the hits is quicker."
+msgstr ""
+
+#: Module.php:97
+msgid ""
+"The table \"{table}\" already exists with data but does not match the "
+"expected schema. Remove it manually or restore the module Statistics to "
+"migrate the data, then retry."
+msgstr ""
+
+#: Module.php:115
 msgid ""
 "This module cannot install its tables, because they exist already. Try to "
 "remove them first."
 msgstr ""
 
-#: Module.php:67
+#: Module.php:120
 msgid "Missing requirement. Unable to install."
 msgstr ""
 
-#: Module.php:178
+#: Module.php:232
 msgid ""
 "Analytics module: the .htaccess is not writable; the rewrite rule was not "
 "removed during uninstall."
 msgstr ""
 
-#: Module.php:571
+#: Module.php:597
+msgid ""
+"Cleaning past hits in background (job #{job_id}): deduplication of the "
+"files, removal of the regions of the images, rebuild of the statistics. The "
+"counts of files and images will decrease. The removed hits are archived in "
+"the table \"hit_duplicate\"."
+msgstr ""
+
+#: Module.php:609
+msgid ""
+"Automatic management of .htaccess is disabled in config "
+"(analytics_htaccess_skip). The download rule must be configured manually "
+"(vhost, or another tool)."
+msgstr ""
+
+#: Module.php:638
+msgid ""
+"Proxy headers (X-Forwarded-For/X-Real-IP) are received from {peer}, that is "
+"not a trusted proxy, so they are ignored and the hits log the ip of the "
+"proxy. If it is the reverse proxy of the server, add it to the trusted "
+"reverse proxies of the main settings."
+msgstr ""
+
+#: Module.php:670
 msgid "The file .htaccess is not readable at the root of Omeka."
 msgstr ""
 
-#: Module.php:625
+#: Module.php:712
 msgid ""
 "A legacy .htaccess rule tracks file types \"{types}\" but is not managed by "
 "the module. Save the settings to convert it to the managed format."
 msgstr ""
 
-#: Module.php:631
+#: Module.php:722
+msgid ""
+"The file .htaccess is not writable, so the rule for types \"{types}\" set "
+"below could not be applied. Add the following lines manually in the "
+"file .htaccess at the root of Omeka, just after \"RewriteEngine On\":"
+"{line_break}{rule}"
+msgstr ""
+
+#: Module.php:734
 msgid ""
 "No .htaccess rule is set to track downloads. To count file downloads, add "
 "the following lines in the file .htaccess at the root of Omeka, just after "
 "\"RewriteEngine On\":{line_break}{rule}"
 msgstr ""
 
-#: Module.php:675
+#: Module.php:770
 msgid ""
 "The file .htaccess is not writable. Add the following lines manually in the "
 "file .htaccess at the root of Omeka, just after \"RewriteEngine On\":"
 "{line_break}{rule}"
 msgstr ""
 
-#: Module.php:685
+#: Module.php:780
 msgid ""
 "The file .htaccess is not writable. Remove the lines starting with \"{marker}"
 "\" manually from the file .htaccess at the root of Omeka."
 msgstr ""
 
-#: Module.php:717
+#: Module.php:793
 msgid "File types {types} are tracked through the module Access rewrite rule."
 msgstr ""
 
-#: Module.php:724
+#: Module.php:800
 msgid "The .htaccess rule has been updated to track file types: {types}."
 msgstr ""
 
-#: Module.php:729
+#: Module.php:805
 msgid "The .htaccess rule for download tracking has been removed."
 msgstr ""
 
-#: Module.php:745
+#: Module.php:820
 msgid "Analytics: Index statistics (needed only after direct import)"
 msgstr ""
 
-#: Module.php:773
+#: Module.php:821
+msgid ""
+"Analytics: Clean past hits (deduplicate files, remove regions of images)"
+msgstr ""
+
+#: Module.php:822
+msgid "Analytics: Update the indexes of the tables of hits and stats"
+msgstr ""
+
+#: Module.php:828
+msgid "Analytics: Reindex"
+msgstr ""
+
+#: Module.php:829
+msgid ""
+"Index the analytics statistics (needed only after a direct database import)."
+msgstr ""
+
+#: Module.php:831
+msgid "Index"
+msgstr ""
+
+#: Module.php:835
+msgid "Analytics: Clean hits"
+msgstr ""
+
+#: Module.php:836
+msgid ""
+"Deduplicate the past hits of files (same visitor within the deduplication "
+"window) and remove the hits of the regions of the images (tiles) and of the "
+"technical requests (checks of rights, bot challenge), then rebuild the "
+"statistics. The counts of files and images will decrease. The removed hits "
+"are archived in the table \"hit_duplicate\", to check then to empty, or to "
+"restore."
+msgstr ""
+
+#: Module.php:838
+msgid "Clean"
+msgstr ""
+
+#: Module.php:842
+msgid "Analytics: Update indexes"
+msgstr ""
+
+#: Module.php:843
+msgid ""
+"Add the composite index on the url and the date of the hits, then remove the "
+"useless indexes of the tables of hits and stats. It may take a long time on "
+"a big table, but the site remains available."
+msgstr ""
+
+#: Module.php:889
 msgid "Update of aggregated statistics: Start"
 msgstr ""
 
-#: Module.php:777
+#: Module.php:893
 msgid "Update of aggregated statistics: Ended."
 msgstr ""
 
-#: src/Mvc/MvcListeners.php:156 src/Mvc/Controller/Plugin/LogCurrentUrl.php:134
+#: src/Mvc/Controller/Plugin/LogCurrentUrl.php:197
 msgid "Exception when storing hit/stat: {message}"
+msgstr ""
+
+#: src/Job/AggregateHits.php:136
+msgid "The job was stopped: the stats are incomplete, run it again."
+msgstr ""
+
+#: src/Job/AggregateHits.php:141
+msgid "{count} stats of {label} created."
+msgstr ""
+
+#: src/Job/AggregateHits.php:150
+msgid "Aggregation of the stats of {label}: {total} rows."
+msgstr ""
+
+#: src/Job/UpdateDatabaseIndexes.php:65
+msgid "The indexes are already being updated by the job #{job_id}."
+msgstr ""
+
+#: src/Job/UpdateDatabaseIndexes.php:77
+msgid ""
+"Adding index `{index}` on table `{table}`, that may be long on a big table."
+msgstr ""
+
+#: src/Job/UpdateDatabaseIndexes.php:88
+msgid "Unable to add index `{index}` on table `{table}`: {message}"
+msgstr ""
+
+#: src/Job/UpdateDatabaseIndexes.php:94
+msgid "Index `{index}` added on table `{table}`."
+msgstr ""
+
+#: src/Job/UpdateDatabaseIndexes.php:113
+msgid "Unable to remove index `{index}` on table `{table}`: {message}"
+msgstr ""
+
+#: src/Job/UpdateDatabaseIndexes.php:119
+msgid "Index `{index}` removed from table `{table}`."
+msgstr ""
+
+#: src/Job/UpdateDatabaseIndexes.php:126
+msgid "The indexes of the tables of hits and stats are updated."
+msgstr ""
+
+#: src/Job/CleanHits.php:45
+msgid "The deduplication of the hits of files is disabled (no window)."
+msgstr ""
+
+#: src/Job/CleanHits.php:54
+msgid ""
+"Starting deduplication of {total} hits of files (sorting them may be long)."
+msgstr ""
+
+#: src/Job/CleanHits.php:75
+msgid "The job was stopped: no hit was removed."
+msgstr ""
+
+#: src/Job/CleanHits.php:80
+msgid ""
+"{count}/{total} hits of files checked, duplicates found so far: {duplicates}."
+msgstr ""
+
+#: src/Job/CleanHits.php:92
+msgid ""
+"All the hits of files are checked ({total}), duplicates to remove: "
+"{duplicates}."
+msgstr ""
+
+#: src/Job/CleanHits.php:112
+msgid "{count}/{total} duplicates removed."
+msgstr ""
+
+#: src/Job/CleanHits.php:119
+msgid ""
+"Deduplication of the hits of files: duplicates removed: {count}, among "
+"{total} hits of files. The removed hits are archived in the table "
+"\"hit_duplicate\": check them, then empty it, or restore them with \"INSERT "
+"INTO hit SELECT * FROM hit_duplicate\"."
+msgstr ""
+
+#: src/Job/CleanHits.php:129
+msgid "Searching the hits of the regions of the images."
+msgstr ""
+
+#: src/Job/CleanHits.php:154
+msgid "{count}/{total} hits of regions removed."
+msgstr ""
+
+#: src/Job/CleanHits.php:161
+msgid ""
+"Removal of the hits of the parts of medias (regions of images, alto, "
+"annotations and hocr of the pages) and of the technical requests (checks of "
+"rights, bot challenge): hits removed and archived in the table "
+"\"hit_duplicate\": {count}. The view of an image is its info.json now."
+msgstr ""
+
+#: src/Job/CleanHits.php:174
+msgid "Rebuilding the statistics from the remaining hits."
 msgstr ""
 
 #: src/Form/SiteSettingsFieldset.php:13
 msgid "Old themes"
-msgstr ""
-
-#: src/Form/SiteSettingsFieldset.php:26
-msgid "Analytics (old themes)"
 msgstr ""
 
 #: src/Form/SiteSettingsFieldset.php:28
@@ -575,6 +857,10 @@ msgstr ""
 
 #: src/Form/SiteSettingsFieldset.php:30
 msgid "Item set show"
+msgstr ""
+
+#: src/Form/AnalyticsByDownloadForm.php:36
+msgid "Original and thumbnails"
 msgstr ""
 
 #: src/Form/AnalyticsByDownloadForm.php:40
@@ -597,10 +883,22 @@ msgstr ""
 msgid "Filter the resources"
 msgstr ""
 
+#: src/Form/AnalyticsByDownloadForm.php:70
+#: src/Form/AnalyticsByValueForm.php:115 src/Form/AnalyticsBySiteForm.php:71
+#: src/Form/AnalyticsByPageForm.php:63 src/Form/AnalyticsByResourceForm.php:71
+msgid "Year"
+msgstr ""
+
 #: src/Form/AnalyticsByDownloadForm.php:72
 #: src/Form/AnalyticsByValueForm.php:117 src/Form/AnalyticsBySiteForm.php:73
 #: src/Form/AnalyticsByPageForm.php:65 src/Form/AnalyticsByResourceForm.php:73
 msgid "All years"
+msgstr ""
+
+#: src/Form/AnalyticsByDownloadForm.php:84
+#: src/Form/AnalyticsByValueForm.php:129 src/Form/AnalyticsBySiteForm.php:85
+#: src/Form/AnalyticsByPageForm.php:77 src/Form/AnalyticsByResourceForm.php:85
+msgid "Month"
 msgstr ""
 
 #: src/Form/AnalyticsByDownloadForm.php:86
@@ -609,11 +907,36 @@ msgstr ""
 msgid "All monthes"
 msgstr ""
 
-#: src/Form/SettingsFieldset.php:29
+#: src/Form/AnalyticsByDownloadForm.php:112
+#: src/Form/AnalyticsBySiteForm.php:113 src/Form/AnalyticsByPageForm.php:105
+#: src/Form/AnalyticsByFieldForm.php:75
+#: src/Form/AnalyticsByResourceForm.php:113
+msgid "From"
+msgstr ""
+
+#: src/Form/AnalyticsByDownloadForm.php:126
+#: src/Form/AnalyticsBySiteForm.php:127 src/Form/AnalyticsByPageForm.php:119
+#: src/Form/AnalyticsByFieldForm.php:87
+#: src/Form/AnalyticsByResourceForm.php:127
+msgid "Until"
+msgstr ""
+
+#: src/Form/SettingsFieldset.php:41
+msgid "Do not modify .htaccess (manage Apache redirections manually)"
+msgstr ""
+
+#: src/Form/SettingsFieldset.php:42
+msgid ""
+"When checked, the module will not write or update the rewrite rule in the "
+"root .htaccess. Add the rules manually (vhost or .htaccess) to redirect file "
+"requests through the download controller."
+msgstr ""
+
+#: src/Form/SettingsFieldset.php:53
 msgid "File types to track downloads via .htaccess"
 msgstr ""
 
-#: src/Form/SettingsFieldset.php:30
+#: src/Form/SettingsFieldset.php:54
 msgid ""
 "Select the file types that should be tracked by an Apache rewrite rule in "
 "the root .htaccess. The rule redirects direct file access through the "
@@ -622,84 +945,129 @@ msgid ""
 "Analytics directly."
 msgstr ""
 
-#: src/Form/SettingsFieldset.php:48
+#: src/Form/SettingsFieldset.php:72
 msgid "Custom file paths to track via .htaccess"
 msgstr ""
 
-#: src/Form/SettingsFieldset.php:49
+#: src/Form/SettingsFieldset.php:73
 msgid ""
 "Additional file subdirectories to track, for example for the module "
 "DerivativeMedia (mp3, mp4, etc.). Separate paths with spaces."
 msgstr ""
 
-#: src/Form/SettingsFieldset.php:62
+#: src/Form/SettingsFieldset.php:86
 msgid "Level of privacy for new hits"
 msgstr ""
 
-#: src/Form/SettingsFieldset.php:65
+#: src/Form/SettingsFieldset.php:89
 msgid "Hashed IP"
 msgstr ""
 
-#: src/Form/SettingsFieldset.php:66
+#: src/Form/SettingsFieldset.php:90
 msgid "Partial IP (first hex)"
 msgstr ""
 
-#: src/Form/SettingsFieldset.php:67
+#: src/Form/SettingsFieldset.php:91
 msgid "Partial IP (first 2 hexs)"
 msgstr ""
 
-#: src/Form/SettingsFieldset.php:68
+#: src/Form/SettingsFieldset.php:92
 msgid "Partial IP (first 3 hexs)"
 msgstr ""
 
-#: src/Form/SettingsFieldset.php:69
+#: src/Form/SettingsFieldset.php:93
 msgid "Clear IP"
 msgstr ""
 
-#: src/Form/SettingsFieldset.php:82
+#: src/Form/SettingsFieldset.php:106
+msgid "Minutes to count the requests of a file by a visitor as a single hit"
+msgstr ""
+
+#: src/Form/SettingsFieldset.php:107
+msgid ""
+"A file is requested many times for a single view: probe, ranges of an audio "
+"or video file, preload, replay. A long media read continuously still counts "
+"a new hit when the window expires, so increase it for long videos or audio "
+"books. Empty or zero disables the deduplication."
+msgstr ""
+
+#: src/Form/SettingsFieldset.php:119
+msgid ""
+"Record the requested zones of images and parts of audio and video files "
+"(heat map)"
+msgstr ""
+
+#: src/Form/SettingsFieldset.php:120
+msgid ""
+"The requests of the tiles of the images and the partial requests of the "
+"audio and video files are aggregated by month in the table "
+"\"analytics_segment\", to identify the most viewed zones and the most played "
+"parts. They are never counted as hits."
+msgstr ""
+
+#: src/Form/SettingsFieldset.php:131
 msgid "Include crawlers/bots"
 msgstr ""
 
-#: src/Form/SettingsFieldset.php:83
+#: src/Form/SettingsFieldset.php:132
 msgid ""
 "By checking this box, all hits which user agent contains the term \"bot\", "
 "\"crawler\", \"spider\", etc. will be included."
 msgstr ""
 
-#: src/Form/SettingsFieldset.php:95
+#: src/Form/SettingsFieldset.php:144
 msgid "User status for admin pages"
 msgstr ""
 
-#: src/Form/SettingsFieldset.php:97 src/Form/SettingsFieldset.php:113
+#: src/Form/SettingsFieldset.php:146 src/Form/SettingsFieldset.php:162
 msgid "Total hits"
 msgstr ""
 
-#: src/Form/SettingsFieldset.php:99 src/Form/SettingsFieldset.php:115
+#: src/Form/SettingsFieldset.php:148 src/Form/SettingsFieldset.php:164
 msgid "Identified users"
 msgstr ""
 
-#: src/Form/SettingsFieldset.php:111
+#: src/Form/SettingsFieldset.php:160
 msgid "User status for public pages"
 msgstr ""
 
-#: src/Form/SettingsFieldset.php:127
+#: src/Form/SettingsFieldset.php:176
 msgid "Disable analytics on admin dashboard"
 msgstr ""
 
-#: src/Form/SettingsFieldset.php:138
+#: src/Form/SettingsFieldset.php:187
 msgid "Results per page (admin)"
 msgstr ""
 
-#: src/Form/SettingsFieldset.php:150
+#: src/Form/SettingsFieldset.php:199
 msgid "Results per page (public)"
 msgstr ""
 
-#: src/Form/SettingsFieldset.php:163
+#: src/Form/SettingsFieldset.php:212
 msgid "Allow public to access analytics summary"
 msgstr ""
 
-#: src/Form/SettingsFieldset.php:174
+#: src/Form/SettingsFieldset.php:223
 msgid "Allow public to access detailled analytics"
+msgstr ""
+
+#: src/Form/SettingsFieldset.php:239
+msgid "Clean past hits once (deduplicate files, remove regions of images)"
+msgstr ""
+
+#: src/Form/SettingsFieldset.php:240
+msgid ""
+"Run the task that deduplicates the past hits of files and removes the hits "
+"of the regions of the images (tiles), then rebuilds the statistics, so the "
+"counts of files and images will decrease. The removed hits are archived in "
+"the table \"hit_duplicate\", to check then to empty, or to restore. The task "
+"is also available in the module Easy Admin."
+msgstr ""
+
+#: src/Form/AnalyticsByValueForm.php:36 src/Form/AnalyticsBySiteForm.php:38
+#: src/Form/AnalyticsByPageForm.php:47 src/Form/AnalyticsByFieldForm.php:42
+#: src/Form/AnalyticsByResourceForm.php:36
+msgid "Filter pages with resources"
 msgstr ""
 
 #: src/Form/AnalyticsByValueForm.php:39 src/Form/AnalyticsBySiteForm.php:41
@@ -712,6 +1080,14 @@ msgstr ""
 msgid "By media"
 msgstr ""
 
+#: src/Form/AnalyticsByValueForm.php:83
+msgid "Value type"
+msgstr ""
+
+#: src/Form/AnalyticsByValueForm.php:99
+msgid "Group by period"
+msgstr ""
+
 #: src/Form/AnalyticsByValueForm.php:102
 msgid "By year"
 msgstr ""
@@ -720,12 +1096,20 @@ msgstr ""
 msgid "By month"
 msgstr ""
 
+#: src/Form/AnalyticsByPageForm.php:35
+msgid "Site pages only"
+msgstr ""
+
 #: src/Form/AnalyticsByPageForm.php:50
 msgid "Has resource or page"
 msgstr ""
 
 #: src/Form/AnalyticsByPageForm.php:51
 msgid "Has no resource"
+msgstr ""
+
+#: src/Form/AnalyticsByFieldForm.php:23
+msgid "Field"
 msgstr ""
 
 #: src/Form/AnalyticsByFieldForm.php:26
@@ -738,6 +1122,12 @@ msgstr ""
 
 #: src/Form/AnalyticsByFieldForm.php:28
 msgid "Accept language"
+msgstr ""
+
+#: src/Form/AnalyticsByFieldForm.php:76
+msgid ""
+"The frequencies are computed on the hits, so they are limited to the last 30 "
+"days by default."
 msgstr ""
 
 #: src/Api/Adapter/StatAdapter.php:173
@@ -770,21 +1160,21 @@ msgstr ""
 msgid "The type should be unique for the url."
 msgstr ""
 
-#: src/Api/Adapter/HitAdapter.php:198
+#: src/Api/Adapter/HitAdapter.php:203
 msgid ""
 "It is not possible to query hits on all resources types at the same time for "
 "now."
 msgstr ""
 
-#: src/Entity/Stat.php:53
+#: src/Entity/Stat.php:51
 msgid "api"
 msgstr ""
 
-#: src/Entity/Stat.php:55
+#: src/Entity/Stat.php:53
 msgid "resource"
 msgstr ""
 
-#: src/Entity/Stat.php:56
+#: src/Entity/Stat.php:54
 msgid "download"
 msgstr ""
 
@@ -800,16 +1190,16 @@ msgstr ""
 msgid "The format \"{format}\" is not supported to export statistics."
 msgstr ""
 
-#: src/Controller/AnalyticsController.php:392
-#: src/Controller/AnalyticsController.php:547
-#: src/Controller/AnalyticsController.php:705
+#: src/Controller/AnalyticsController.php:401
+#: src/Controller/AnalyticsController.php:556
+#: src/Controller/AnalyticsController.php:714
 msgid "Available"
 msgstr ""
 
-#: src/Controller/AnalyticsController.php:1048
+#: src/Controller/AnalyticsController.php:1068
 msgid "A property is required to get statistics."
 msgstr ""
 
-#: src/Controller/AnalyticsController.php:1063
+#: src/Controller/AnalyticsController.php:1083
 msgid "A year is required to get details by month."
 msgstr ""
