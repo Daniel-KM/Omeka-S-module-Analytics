@@ -56,7 +56,38 @@ class Module extends AbstractModule
             );
             $messenger->addNotice($message);
         } else {
-            // Standard install: check and create tables.
+            // Standard install: drop any orphan empty hit/stat table left by a
+            // previously failed install, then check and create tables. The
+            // helper checkNewTablesFromFile() of Common runs DROP via a
+            // multi-statement executeStatement() that silently skips the DROP,
+            // so we handle it explicitly here with separate statements.
+            /** @var \Doctrine\DBAL\Connection $connection */
+            $connection = $services->get('Omeka\Connection');
+            $existing = $connection->executeQuery('SHOW TABLES;')->fetchFirstColumn();
+            $orphans = [];
+            foreach (['hit', 'stat'] as $table) {
+                if (!in_array($table, $existing, true)) {
+                    continue;
+                }
+                $hasData = $connection->executeQuery("SELECT 1 FROM `$table` LIMIT 1;")->fetchOne();
+                if ($hasData !== false) {
+                    $message = new PsrMessage(
+                        'The table "{table}" already exists with data but does not match the expected schema. Remove it manually or restore the module Statistics to migrate the data, then retry.', // @translate
+                        ['table' => $table]
+                    );
+                    $messenger = $services->get('ControllerPluginManager')->get('messenger');
+                    $messenger->addError($message);
+                    throw new \Omeka\Module\Exception\ModuleCannotInstallException((string) $message);
+                }
+                $orphans[] = $table;
+            }
+            if ($orphans) {
+                $connection->executeStatement('SET FOREIGN_KEY_CHECKS=0;');
+                foreach ($orphans as $table) {
+                    $connection->executeStatement("DROP TABLE `$table`;");
+                }
+                $connection->executeStatement('SET FOREIGN_KEY_CHECKS=1;');
+            }
             if (!$this->checkNewTablesFromFile($sqlFile)) {
                 $message = new PsrMessage(
                     'This module cannot install its tables, because they exist already. Try to remove them first.' // @translate
