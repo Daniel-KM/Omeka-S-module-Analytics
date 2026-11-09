@@ -60,7 +60,7 @@ class CleanHits extends AbstractJob
         $deduplicator = new HitDeduplicator($minutes * 60);
         $toDelete = [];
         $total = 0;
-        $pdo = $this->openUnbufferedConnection($connection->getParams());
+        $pdo = \Analytics\Stdlib\UnbufferedConnection::open($connection->getParams());
         $stmt = $pdo->query(
             'SELECT `id`, `url`, `ip`, `user_agent`, `accept_language`, `created` FROM `hit`
             WHERE `url` LIKE "%/files/%"
@@ -170,27 +170,5 @@ class CleanHits extends AbstractJob
         // Hide the checkbox of the main settings once the cleaning was done.
         $services->get('Omeka\Settings')
             ->set('analytics_clean_hits_done', date('Y-m-d\TH:i:s'));
-    }
-
-    /**
-     * Open an unbuffered connection to stream a big sorted result with a low
-     * memory use, without loading it in the php client.
-     */
-    protected function openUnbufferedConnection(array $params): \PDO
-    {
-        $dsn = 'mysql:';
-        if (!empty($params['unix_socket'])) {
-            $dsn .= 'unix_socket=' . $params['unix_socket'];
-        } else {
-            $dsn .= 'host=' . ($params['host'] ?? 'localhost');
-            if (!empty($params['port'])) {
-                $dsn .= ';port=' . $params['port'];
-            }
-        }
-        $dsn .= ';dbname=' . $params['dbname'] . ';charset=utf8mb4';
-        return new \PDO($dsn, $params['user'] ?? null, $params['password'] ?? null, [
-            \PDO::MYSQL_ATTR_USE_BUFFERED_QUERY => false,
-            \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
-        ]);
     }
 }

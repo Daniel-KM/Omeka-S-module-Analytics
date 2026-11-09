@@ -2,15 +2,26 @@
 
 namespace Analytics\Job;
 
+use Analytics\Stdlib\UnbufferedConnection;
 use Omeka\Job\AbstractJob;
 
 class AggregateHits extends AbstractJob
 {
+    /**
+     * @var \Laminas\Log\Logger
+     */
+    protected $logger;
+
+    /**
+     * @var \Doctrine\DBAL\Connection
+     */
+    protected $connection;
+
     public function perform(): void
     {
         $services = $this->getServiceLocator();
 
-        $logger = $services->get('Omeka\Logger');
+        $this->logger = $services->get('Omeka\Logger');
 
         /** @var \Omeka\Module\Manager $moduleManager */
         $moduleManager = $services->get('Omeka\ModuleManager');
@@ -18,30 +29,20 @@ class AggregateHits extends AbstractJob
         if ($module && $module->getState() === \Omeka\Module\Manager::STATE_ACTIVE) {
             $referenceIdProcessor = new \Laminas\Log\Processor\ReferenceId();
             $referenceIdProcessor->setReferenceId('statistics/aggregate_hits/job_' . $this->job->getId());
-            $logger->addProcessor($referenceIdProcessor);
+            $this->logger->addProcessor($referenceIdProcessor);
         }
 
-        /** @var \Doctrine\DBAL\Connection $connection */
-        $connection = $services->get('Omeka\Connection');
+        $this->connection = $services->get('Omeka\Connection');
 
-        // Use direct sql requests because hits are generally numerous.
-        $sqls = <<<'SQL'
-            # Remove existing stats.
-            TRUNCATE TABLE `stat`;
-            
-            # Create stats for page (browser) and download (file).
-            INSERT INTO `stat` (
-                `type`,
-                `url`,
-                `entity_id`,
-                `entity_name`,
-                `hits`,
-                `hits_anonymous`,
-                `hits_identified`,
-                `created`,
-                `modified`
-            )
-            SELECT DISTINCT
+        // The hits are read with plain selects, that do not lock the table, so
+        // the site can record hits during the rebuild, unlike "insert from
+        // select". The rows created live during the rebuild are overwritten.
+        $this->connection->executeStatement('TRUNCATE TABLE `stat`');
+
+        // Stats for page (browser) and download (file).
+        $this->insertStreamed(
+            'page/download',
+            'SELECT
                 IF(`url` LIKE "/files/%", "download", "page"),
                 MIN(`url`),
                 `entity_id`,
@@ -53,25 +54,16 @@ class AggregateHits extends AbstractJob
                 MAX(`created`)
             FROM `hit`
             GROUP BY `url`
-            ORDER BY `created` ASC
-            ;
-            
-            # Create stats for resource (page or download).
-            # The entities are merged by url, because the url is unique by type
-            # in the table and distinct entities may share a min url, for
-            # example when old hits use a wrong entity name.
-            INSERT INTO `stat` (
-                `type`,
-                `url`,
-                `entity_id`,
-                `entity_name`,
-                `hits`,
-                `hits_anonymous`,
-                `hits_identified`,
-                `created`,
-                `modified`
-            )
-            SELECT
+            ORDER BY MIN(`created`) ASC'
+        );
+
+        // Stats for resource (page or download). The entities are merged by
+        // url, because the url is unique by type in the table and distinct
+        // entities may share a min url, for example when old hits use a wrong
+        // entity name.
+        $this->insertStreamed(
+            'resource',
+            'SELECT
                 "resource",
                 `url`,
                 MAX(`entity_id`),
@@ -95,9 +87,68 @@ class AggregateHits extends AbstractJob
                 GROUP BY `entity_name`, `entity_id`
             ) AS `by_entity`
             GROUP BY `url`
-            ORDER BY `created` ASC
-            ;
-            SQL;
-        $connection->executeStatement($sqls);
+            ORDER BY MIN(`created`) ASC'
+        );
+    }
+
+    /**
+     * Stream an aggregated select of the hits into the table of stats.
+     *
+     * The select runs on a separate unbuffered connection and the rows are
+     * inserted by batches on the main one, so the site is never blocked.
+     */
+    protected function insertStreamed(string $label, string $select): void
+    {
+        $sqlInsert = 'INSERT INTO `stat`
+            (`type`, `url`, `entity_id`, `entity_name`, `hits`, `hits_anonymous`, `hits_identified`, `created`, `modified`)
+            VALUES %s
+            ON DUPLICATE KEY UPDATE
+                `hits` = VALUES(`hits`),
+                `hits_anonymous` = VALUES(`hits_anonymous`),
+                `hits_identified` = VALUES(`hits_identified`),
+                `created` = VALUES(`created`),
+                `modified` = VALUES(`modified`)';
+
+        $pdo = UnbufferedConnection::open($this->connection->getParams());
+        $stmt = $pdo->query($select);
+        $batch = [];
+        $total = 0;
+        $flush = function () use (&$batch, $sqlInsert): void {
+            if (!$batch) {
+                return;
+            }
+            $placeholders = implode(', ', array_fill(0, count($batch), '(?, ?, ?, ?, ?, ?, ?, ?, ?)'));
+            $this->connection->executeStatement(
+                sprintf($sqlInsert, $placeholders),
+                array_merge(...$batch)
+            );
+            $batch = [];
+        };
+        while ($row = $stmt->fetch(\PDO::FETCH_NUM)) {
+            $batch[] = $row;
+            if (count($batch) >= 1000) {
+                $flush();
+            }
+            if (++$total % 100000 === 0) {
+                if ($this->shouldStop()) {
+                    $stmt->closeCursor();
+                    $this->logger->warn(
+                        'The job was stopped: the stats are incomplete, run it again.' // @translate
+                    );
+                    return;
+                }
+                $this->logger->info(
+                    '{count} stats of {label} created.', // @translate
+                    ['count' => $total, 'label' => $label]
+                );
+            }
+        }
+        $flush();
+        $stmt->closeCursor();
+
+        $this->logger->notice(
+            'Aggregation of the stats of {label}: {total} rows.', // @translate
+            ['label' => $label, 'total' => $total]
+        );
     }
 }
