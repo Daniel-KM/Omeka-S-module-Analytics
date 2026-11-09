@@ -534,10 +534,27 @@ class Module extends AbstractModule
 
     public function handleMainSettings(Event $event): void
     {
-        $this->handleAnySettings($event, 'settings');
-
+        // The checkbox to clean the past hits is a flag, like the core
+        // checkbox to index the full-text search: the job is dispatched on the
+        // reload of the page after the save. The flag is reset before the form
+        // is populated, so the value is never kept and the checkbox is always
+        // displayed unchecked.
         $services = $this->getServiceLocator();
         $settings = $services->get('Omeka\Settings');
+        if ($settings->get('analytics_clean_hits')) {
+            $settings->set('analytics_clean_hits', false);
+            $job = $services->get(\Omeka\Job\Dispatcher::class)
+                ->dispatch(\Analytics\Job\CleanHits::class);
+            $message = new \Common\Stdlib\PsrMessage(
+                'Cleaning past hits in background (job #{job_id}): deduplication of the files, removal of the regions of the images, rebuild of the statistics. The counts of files and images will decrease. The removed hits are archived in the table "hit_duplicate".', // @translate
+                ['job_id' => $job->getId()]
+            );
+            $services->get('ControllerPluginManager')->get('messenger')
+                ->addSuccess($message);
+        }
+
+        $this->handleAnySettings($event, 'settings');
+
         if ($settings->get('analytics_htaccess_skip')) {
             $messenger = $services->get('ControllerPluginManager')->get('messenger');
             $messenger->addWarning(new PsrMessage(

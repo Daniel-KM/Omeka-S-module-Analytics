@@ -13,6 +13,17 @@ class SettingsFieldset extends Fieldset
      */
     protected $label = 'Analytics'; // @translate
 
+    /**
+     * @var bool
+     */
+    protected $cleanHitsDone = false;
+
+    public function setCleanHitsDone(bool $cleanHitsDone): self
+    {
+        $this->cleanHitsDone = $cleanHitsDone;
+        return $this;
+    }
+
     protected $elementGroups = [
         'analytics' => 'Analytics', // @translate
     ];
@@ -229,5 +240,22 @@ class SettingsFieldset extends Fieldset
                 ],
             ])
         ;
+
+        // The checkbox to clean the past hits is displayed until the cleaning
+        // was done once. The task remains available in the module Easy Admin.
+        if (!$this->cleanHitsDone) {
+            $this->add([
+                'name' => 'analytics_clean_hits',
+                'type' => Element\Checkbox::class,
+                'options' => [
+                    'element_group' => 'analytics',
+                    'label' => 'Clean past hits once (deduplicate files, remove regions of images)', // @translate
+                    'info' => 'Run the task that deduplicates the past hits of files and removes the hits of the regions of the images (tiles), then rebuilds the statistics, so the counts of files and images will decrease. The removed hits are archived in the table "hit_duplicate", to check then to empty, or to restore. The task is also available in the module Easy Admin.', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'analytics_clean_hits',
+                ],
+            ]);
+        }
     }
 }

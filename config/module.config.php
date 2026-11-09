@@ -39,10 +39,8 @@ return [
         ],
     ],
     'form_elements' => [
-        'invokables' => [
-            Form\SettingsFieldset::class => Form\SettingsFieldset::class,
-        ],
         'factories' => [
+            Form\SettingsFieldset::class => Service\Form\SettingsFieldsetFactory::class,
             Form\AnalyticsByDownloadForm::class => Service\Form\FormFactory::class,
             Form\AnalyticsByFieldForm::class => Service\Form\FormFactory::class,
             Form\AnalyticsByItemSetForm::class => Service\Form\FormFactory::class,
@@ -221,6 +219,10 @@ return [
             'analytics_ip_salt' => '',
             'analytics_include_bots' => false,
             'analytics_deduplication_minutes' => 30,
+            // Flag to run the job to clean the past hits once (never stored).
+            'analytics_clean_hits' => false,
+            // Date of the last cleaning: the checkbox above is then hidden.
+            'analytics_clean_hits_done' => '',
             // Record the requested zones of the images and parts of the audio
             // and video files, as a heat map.
             'analytics_segments' => false,

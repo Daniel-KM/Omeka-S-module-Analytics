@@ -130,5 +130,9 @@ class CleanHits extends AbstractJob
         // duplicates, so a previously failed rebuild is repaired.
         $aggregateHits = new AggregateHits($this->job, $services);
         $aggregateHits->perform();
+
+        // Hide the checkbox of the main settings once the cleaning was done.
+        $services->get('Omeka\Settings')
+            ->set('analytics_clean_hits_done', date('Y-m-d\TH:i:s'));
     }
 }
