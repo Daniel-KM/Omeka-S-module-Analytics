@@ -43,6 +43,14 @@ CREATE TABLE `stat` (
     PRIMARY KEY(`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB;
 
+CREATE TABLE `analytics_bot_count` (
+    `day` DATE NOT NULL,
+    `type` VARCHAR(16) NOT NULL,
+    `name` VARCHAR(64) DEFAULT '' NOT NULL,
+    `hits` INT DEFAULT 0 NOT NULL,
+    PRIMARY KEY(`day`, `type`, `name`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB;
+
 CREATE TABLE `analytics_segment` (
     `id` INT AUTO_INCREMENT NOT NULL,
     `entity_name` VARCHAR(190) DEFAULT '' NOT NULL,

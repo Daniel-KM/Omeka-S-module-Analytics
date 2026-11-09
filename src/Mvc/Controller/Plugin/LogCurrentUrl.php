@@ -6,6 +6,7 @@ use Psr\Container\ContainerInterface;
 use Laminas\Mvc\Controller\Plugin\AbstractPlugin;
 use Omeka\Api\Request;
 use Analytics\Entity\Hit;
+use Analytics\Stdlib\BotCounter;
 
 /**
  * Adapted:
@@ -61,6 +62,16 @@ class LogCurrentUrl extends AbstractPlugin
         $routeMatch = $status->getRouteMatch();
         $routeName = $routeMatch->getMatchedRouteName();
 
+        // The challenge of the module Bot Challenge is not a view, but it allows
+        // to know the number of robots.
+        if ($routeName === 'bot-challenge') {
+            (new BotCounter($this->services->get('Omeka\Connection')))->record(
+                $method === 'POST' ? BotCounter::TYPE_SOLVED : BotCounter::TYPE_CHALLENGED,
+                $_SERVER['HTTP_USER_AGENT'] ?? null
+            );
+            return null;
+        }
+
         // Don't log some routes.
         if (in_array($routeName, [
             // Omeka S.
@@ -72,8 +83,6 @@ class LogCurrentUrl extends AbstractPlugin
             'forgot-password',
             // Module Access: check of the rights by the image server.
             'access-authorize',
-            // Module Bot Challenge: technical page, not a view.
-            'bot-challenge',
             // Module CSS Editor.
             'site/css-editor',
         ])) {
@@ -109,10 +118,11 @@ class LogCurrentUrl extends AbstractPlugin
         /** @var \Analytics\Api\Adapter\HitAdapter $hitAdapter */
         $hitAdapter = $this->services->get('Omeka\ApiAdapterManager')->get('hits');
 
-        $includeBots = (bool) $this->services->get('Omeka\Settings')->get('analytics_include_bots');
-        if (empty($includeBots)) {
-            $userAgent = $_SERVER['HTTP_USER_AGENT'] ?? null;
-            if ($userAgent && $hitAdapter->isBot($userAgent)) {
+        $userAgent = $_SERVER['HTTP_USER_AGENT'] ?? null;
+        if ($userAgent && $hitAdapter->isBot($userAgent)) {
+            (new BotCounter($this->services->get('Omeka\Connection')))
+                ->record(BotCounter::TYPE_DECLARED, $userAgent);
+            if (!$this->services->get('Omeka\Settings')->get('analytics_include_bots')) {
                 return null;
             }
         }
