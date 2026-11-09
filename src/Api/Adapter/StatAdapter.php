@@ -382,15 +382,4 @@ class StatAdapter extends AbstractEntityAdapter
             $errorStore->addError('o:url', 'The type should be unique for the url.'); // @translate
         }
     }
-
-    /**
-     * Increase total and anonymous/identified hits.
-     */
-    public function increaseHits(Stat $stat): void
-    {
-        $stat->setTotalHits($stat->getTotalHits() + 1);
-        $this->getServiceLocator()->get('Omeka\AuthenticationService')->getIdentity()
-            ? $stat->setTotalHitsIdentified($stat->getTotalHitsIdentified() + 1)
-            : $stat->setTotalHitsAnonymous($stat->getTotalHitsAnonymous() + 1);
-    }
 }

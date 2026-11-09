@@ -3,9 +3,7 @@
 namespace Analytics\Api\Adapter;
 
 use DateTime;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\DBAL\ParameterType;
-use Doctrine\ORM\Query\Parameter;
+use Doctrine\DBAL\Connection;
 use Doctrine\ORM\QueryBuilder;
 use Omeka\Api\Adapter\AbstractEntityAdapter;
 use Omeka\Api\Request;
@@ -600,117 +598,81 @@ class HitAdapter extends AbstractEntityAdapter
         $now = new DateTime('now');
         $entity->setCreated($now);
 
-        /** @var \Analytics\Api\Adapter\StatAdapter $statAdapter */
-        $statAdapter = $this->getAdapter('stats');
-        $entityManager = $this->getEntityManager();
+        $this->increaseStats($entity, $now);
+    }
 
-        // Stat is created if not exists.
+    /**
+     * Increase the stats of a hit atomically.
+     *
+     * The counters are increased in sql, not read then written by the entity
+     * manager, so the concurrent requests of the same url do not lose hits.
+     * The keys are the same than the rebuild of the stats: page and download
+     * by url, resource by entity, with its first url.
+     */
+    protected function increaseStats(Hit $hit, DateTime $now): void
+    {
+        $services = $this->getServiceLocator();
+        /** @var \Doctrine\DBAL\Connection $connection */
+        $connection = $services->get('Omeka\Connection');
+
+        $url = $hit->getUrl();
+        $entityName = $hit->getEntityName();
+        $entityId = $hit->getEntityId();
+        $identified = $services->get('Omeka\AuthenticationService')->getIdentity() ? 1 : 0;
+        $date = $now->format('Y-m-d H:i:s');
+
         // "page" and "download" are mutually exclusive.
-        $url = $entity->getUrl();
-        $isDownload = $this->isDownload($url);
-        $entityName = $entity->getEntityName();
-        $entityId = $entity->getEntityId();
+        $type = $this->isDownload($url) ? Stat::TYPE_DOWNLOAD : Stat::TYPE_PAGE;
+        $this->upsertStat($connection, $type, $url, $entityName, $entityId, $identified, $date);
 
-        $stat = $this->findStatForHit($entity);
-        if ($stat) {
-            $stat
-                ->setModified($now);
-        } else {
-            $stat = new Stat();
-            $stat
-                ->setType($isDownload ? Stat::TYPE_DOWNLOAD : Stat::TYPE_PAGE)
-                ->setUrl($url)
-                ->setEntityName($entityName)
-                ->setEntityId($entityId)
-                ->setCreated($now)
-                ->setModified($now)
-            ;
-        }
-        $statAdapter->increaseHits($stat);
-        $entityManager->persist($stat);
-
-        // A second stat is needed to manage resource count.
         if (!$entityName || !$entityId) {
             return;
         }
 
-        $statResource = $this->findStatForHit($entity, true);
-        if ($statResource) {
-            $statResource
-                ->setModified($now);
-        } else {
-            $statResource = new Stat();
-            $statResource
-                ->setType(Stat::TYPE_RESOURCE)
-                ->setUrl($url)
-                ->setEntityName($entityName)
-                ->setEntityId($entityId)
-                ->setCreated($now)
-                ->setModified($now)
-            ;
+        // A resource may be reached by multiple urls, so its stat is found by
+        // entity. The url of a site page may change, so its stat is by url.
+        if (in_array($entityName, ['items', 'item_sets', 'media', 'digital_objects'])) {
+            $updated = $connection->executeStatement(
+                'UPDATE `stat`
+                SET `hits` = `hits` + 1,
+                    `hits_anonymous` = `hits_anonymous` + ?,
+                    `hits_identified` = `hits_identified` + ?,
+                    `modified` = ?
+                WHERE `type` = ? AND `entity_id` = ? AND `entity_name` = ?
+                LIMIT 1',
+                [1 - $identified, $identified, $date, Stat::TYPE_RESOURCE, $entityId, $entityName]
+            );
+            if ($updated) {
+                return;
+            }
         }
-        $statAdapter->increaseHits($statResource);
-        $entityManager->persist($statResource);
+
+        $this->upsertStat($connection, Stat::TYPE_RESOURCE, $url, $entityName, $entityId, $identified, $date);
     }
 
     /**
-     * Find the matching Stat from a hit, without event and exception.
+     * Create a stat or increase it, according to its unique key type and url.
      */
-    public function findStatForHit(Hit $hit, bool $statResource = false): ?Stat
-    {
-        $url = $hit->getUrl();
-        $parameters = new ArrayCollection([
-            new Parameter('url', $url, ParameterType::STRING),
-        ]);
-
-        $qb = $this->getEntityManager()->createQueryBuilder();
-        $expr = $qb->expr();
-
-        $qb
-            ->select('omeka_root')
-            ->from(Stat::class, 'omeka_root')
-            ->where($expr->eq('omeka_root.url', ':url'))
-            ->andWhere($expr->eq('omeka_root.type', ':type'))
-            ->setMaxResults(1);
-
-        if ($statResource) {
-            $entityName = $hit->getEntityName();
-            $entityId = $hit->getEntityId();
-            if (!$entityName || !$entityId) {
-                return null;
-            }
-            $qb
-                ->andWhere($expr->eq('omeka_root.entityName', ':entity_name'))
-            ;
-            $parameters[] = new Parameter('type', Stat::TYPE_RESOURCE, ParameterType::STRING);
-            $parameters[] = new Parameter('entity_name', $entityName, ParameterType::STRING);
-            // The site page name may have changed, etc., so the most important
-            // for stats is the url.
-            if (in_array($entityName, ['items', 'item_sets', 'media', 'digital_objects'])) {
-                $qb
-                    ->andWhere($expr->eq('omeka_root.entityId', ':entity_id'))
-                ;
-                $parameters[] = new Parameter('entity_id', $entityId, ParameterType::INTEGER);
-            }
-        }
-
-        // Stat is created and filled via getStat() if not exists.
-        // "page" and "download" are mutually exclusive.
-        elseif ($this->isDownload($url)) {
-            $qb
-                ->andWhere($expr->eq('omeka_root.entityName', ':entity_name'))
-                ->andWhere($expr->eq('omeka_root.entityId', ':entity_id'));
-            $parameters[] = new Parameter('type', Stat::TYPE_DOWNLOAD, ParameterType::STRING);
-            $parameters[] = new Parameter('entity_name', 'media', ParameterType::STRING);
-            $parameters[] = new Parameter('entity_id', $hit->getEntityId(), ParameterType::INTEGER);
-        } else {
-            $parameters[] = new Parameter('type', Stat::TYPE_PAGE, ParameterType::STRING);
-        }
-
-        return $qb
-            ->setParameters($parameters)
-            ->getQuery()
-            ->getOneOrNullResult();
+    protected function upsertStat(
+        Connection $connection,
+        string $type,
+        string $url,
+        string $entityName,
+        int $entityId,
+        int $identified,
+        string $date
+    ): void {
+        $connection->executeStatement(
+            'INSERT INTO `stat`
+                (`type`, `url`, `entity_id`, `entity_name`, `hits`, `hits_anonymous`, `hits_identified`, `created`, `modified`)
+            VALUES (?, ?, ?, ?, 1, ?, ?, ?, ?)
+            ON DUPLICATE KEY UPDATE
+                `hits` = `hits` + 1,
+                `hits_anonymous` = `hits_anonymous` + VALUES(`hits_anonymous`),
+                `hits_identified` = `hits_identified` + VALUES(`hits_identified`),
+                `modified` = VALUES(`modified`)',
+            [$type, $url, $entityId, $entityName, 1 - $identified, $identified, $date, $date]
+        );
     }
 
     /**
