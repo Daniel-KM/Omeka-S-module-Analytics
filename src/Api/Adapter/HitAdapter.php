@@ -1083,16 +1083,20 @@ class HitAdapter extends AbstractEntityAdapter
      */
     public function isRecentHit(?int $minutes = null): bool
     {
-        $url = substr((string) $this->currentRequest()['url'], 0, 1024);
+        $currentRequest = $this->currentRequest();
+        $url = substr((string) $currentRequest['url'], 0, 1024);
         if ($url === '') {
             return false;
         }
+        // The user agent distinguishes the visitors sharing an ip: reverse
+        // proxy not trusted in the past, shared network, anonymized ip.
         $since = new \DateTime(sprintf('-%d minutes', $minutes ?? self::DEDUPLICATION_MINUTES));
         return (bool) $this->getServiceLocator()->get('Omeka\Connection')->fetchOne(
-            'SELECT 1 FROM `hit` WHERE `url` = :url AND `ip` = :ip AND `created` >= :since LIMIT 1',
+            'SELECT 1 FROM `hit` WHERE `url` = :url AND `ip` = :ip AND `user_agent` = :user_agent AND `created` >= :since LIMIT 1',
             [
                 'url' => $url,
                 'ip' => $this->privacyIp(),
+                'user_agent' => substr((string) $currentRequest['user_agent'], 0, 1024),
                 'since' => $since->format('Y-m-d H:i:s'),
             ]
         );
