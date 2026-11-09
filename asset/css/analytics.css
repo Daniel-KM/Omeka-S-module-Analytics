@@ -1,29 +1,30 @@
 @media all {
-    header nav .statistics::before,
-    .statistics .subhead::before,
-    .statistics .no-resources:before {
-        content: '';
+  header nav .statistics::before,
+  .statistics .subhead::before,
+  .statistics .no-resources:before {
+      content: '';
+  }
+  .statistics-hover {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    &:hover {
+      overflow: visible;
+      position: absolute;
+      white-space: normal;
     }
-    .statistics-hover {
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-    }
-    .statistics-hover:hover {
-        overflow: visible;
-        position: absolute;
-        white-space: normal;
-    }
-    .odd .statistics-hover:hover {
-        background-color: #fff;
-    }
-    .even .statistics-hover:hover {
-        background-color: #f3f3e7;
-    }
-    .statistics-hover:hover+div {
-        margin-top: 20px;
-    }
-    .statistics .statistics-dashboard {
+  }
+  .odd .statistics-hover:hover {
+      background-color: #fff;
+  }
+  .even .statistics-hover:hover {
+      background-color: #f3f3e7;
+  }
+  .statistics-hover:hover+div {
+      margin-top: 20px;
+  }
+  .statistics {
+    & .statistics-dashboard {
       display: grid;
       grid-template-columns: 1fr 1fr 1fr;
       grid-template-rows: 1fr;
@@ -31,17 +32,18 @@
       grid-template-areas:
         ". . .";
     }
-    .statistics .browse-controls {
-        justify-content: flex-end;
+    & .browse-controls {
+      justify-content: flex-end;
     }
 
-    .statistics td:first-child,
-    .statistics th:first-child {
-        width: inherit;
-        max-width: 50%;
+    & td:first-child,
+    & th:first-child {
+      width: inherit;
+      max-width: 50%;
     }
 
-    .statistics .statistics-totals {
-        text-transform: uppercase;
+    & .statistics-totals {
+      text-transform: uppercase;
     }
+  }
 }
