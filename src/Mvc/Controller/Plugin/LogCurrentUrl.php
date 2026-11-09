@@ -8,11 +8,6 @@ use Omeka\Api\Request;
 use Analytics\Entity\Hit;
 use Analytics\Stdlib\BotCounter;
 
-/**
- * Adapted:
- * @see \Analytics\Mvc\MvcListeners
- * @see \Analytics\Mvc\Controller\Plugin\LogCurrentUrl
- */
 class LogCurrentUrl extends AbstractPlugin
 {
     /**
@@ -28,8 +23,8 @@ class LogCurrentUrl extends AbstractPlugin
     /**
      * Log the current public url.
      *
-     * Note: normally, this plugin should not be used because all requests are
-     * now managed via the MVC event "Finish", that is triggered in all cases.
+     * Note: normally, this plugin should not be called directly, because all
+     * the requests are managed via the MVC event "Dispatch".
      *
      * @see \Analytics\Mvc\MvcListeners
      */
@@ -106,7 +101,10 @@ class LogCurrentUrl extends AbstractPlugin
             // and researcher.
             && $this->services->get('Omeka\Acl')->userIsAllowed(\Omeka\Entity\Resource::class, 'view-all')
         ) {
-            $urlAdminTop = $this->services->get('ControllerPluginManager')->get('url')->fromRoute('admin', [], ['force_canonical' => true]) . '/';
+            // Url is not available before Event dispatch, so rebuild admin top
+            // url with ServerUrl.
+            $serverUrlHelper = $this->services->get('ViewHelperManager')->get('ServerUrl');
+            $urlAdminTop = $serverUrlHelper('/admin/');
             if (strpos($referrer, $urlAdminTop) === 0) {
                 return null;
             }
