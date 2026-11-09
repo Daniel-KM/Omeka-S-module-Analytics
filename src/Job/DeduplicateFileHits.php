@@ -2,7 +2,6 @@
 
 namespace Analytics\Job;
 
-use Analytics\Api\Adapter\HitAdapter;
 use Analytics\Stdlib\HitDeduplicator;
 use Omeka\Job\AbstractJob;
 
@@ -44,7 +43,17 @@ class DeduplicateFileHits extends AbstractJob
 
         // The hits are read in deduplication order by chunks, and deleted only
         // at the end, so the offsets remain stable.
-        $deduplicator = new HitDeduplicator(HitAdapter::DEDUPLICATION_MINUTES * 60);
+        /** @var \Analytics\Api\Adapter\HitAdapter $hitAdapter */
+        $hitAdapter = $services->get('Omeka\ApiAdapterManager')->get('hits');
+        $minutes = $hitAdapter->deduplicationMinutes();
+        if ($minutes <= 0) {
+            $logger->notice(
+                'The deduplication of the hits of files is disabled (no window).' // @translate
+            );
+            return;
+        }
+
+        $deduplicator = new HitDeduplicator($minutes * 60);
         $toDelete = [];
         $total = 0;
         $offset = 0;

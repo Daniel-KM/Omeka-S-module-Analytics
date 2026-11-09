@@ -28,9 +28,9 @@ use Analytics\Entity\Stat;
 class HitAdapter extends AbstractEntityAdapter
 {
     /**
-     * Minutes during which the same file requested by the same visitor is not
-     * counted again: probe then download, ranges of a video, preload of a
-     * player, replay.
+     * Default minutes during which the same file requested by the same visitor
+     * is not counted again: probe then download, ranges of a video, preload of
+     * a player, replay. See the setting "analytics_deduplication_minutes".
      */
     const DEDUPLICATION_MINUTES = 30;
 
@@ -1083,6 +1083,10 @@ class HitAdapter extends AbstractEntityAdapter
      */
     public function isRecentHit(?int $minutes = null): bool
     {
+        $minutes ??= $this->deduplicationMinutes();
+        if ($minutes <= 0) {
+            return false;
+        }
         $currentRequest = $this->currentRequest();
         $url = substr((string) $currentRequest['url'], 0, 1024);
         if ($url === '') {
@@ -1090,7 +1094,7 @@ class HitAdapter extends AbstractEntityAdapter
         }
         // The user agent distinguishes the visitors sharing an ip: reverse
         // proxy not trusted in the past, shared network, anonymized ip.
-        $since = new \DateTime(sprintf('-%d minutes', $minutes ?? self::DEDUPLICATION_MINUTES));
+        $since = new \DateTime(sprintf('-%d minutes', $minutes));
         return (bool) $this->getServiceLocator()->get('Omeka\Connection')->fetchOne(
             'SELECT 1 FROM `hit` WHERE `url` = :url AND `ip` = :ip AND `user_agent` = :user_agent AND `created` >= :since LIMIT 1',
             [
@@ -1100,6 +1104,18 @@ class HitAdapter extends AbstractEntityAdapter
                 'since' => $since->format('Y-m-d H:i:s'),
             ]
         );
+    }
+
+    /**
+     * Minutes of the deduplication window of the hits of files.
+     */
+    public function deduplicationMinutes(): int
+    {
+        $setting = $this->getServiceLocator()->get('Omeka\Settings')
+            ->get('analytics_deduplication_minutes', self::DEDUPLICATION_MINUTES);
+        return $setting === '' || $setting === null
+            ? 0
+            : (int) $setting;
     }
 
     public function isBot(?string $userAgent): bool

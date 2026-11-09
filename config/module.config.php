@@ -217,6 +217,7 @@ return [
             // Secret salt of the hashed ips, created at the first hit.
             'analytics_ip_salt' => '',
             'analytics_include_bots' => false,
+            'analytics_deduplication_minutes' => 30,
             // Trusted reverse proxies (IPs or CIDR, space/comma separated).
             // X-Forwarded-For / X-Real-IP are honored only when the direct peer
             // (REMOTE_ADDR) matches this list. Empty = no proxy trusted.

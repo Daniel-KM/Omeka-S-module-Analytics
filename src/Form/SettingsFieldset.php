@@ -101,6 +101,19 @@ class SettingsFieldset extends Fieldset
                 ],
             ])
             ->add([
+                'name' => 'analytics_deduplication_minutes',
+                'type' => Element\Number::class,
+                'options' => [
+                    'element_group' => 'analytics',
+                    'label' => 'Minutes to count the requests of a file by a visitor as a single hit', // @translate
+                    'info' => 'A file is requested many times for a single view: probe, ranges of an audio or video file, preload, replay. A long media read continuously still counts a new hit when the window expires, so increase it for long videos or audio books. Empty or zero disables the deduplication.', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'analytics_deduplication_minutes',
+                    'min' => 0,
+                ],
+            ])
+            ->add([
                 'name' => 'analytics_include_bots',
                 'type' => Element\Checkbox::class,
                 'options' => [
