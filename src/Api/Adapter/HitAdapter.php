@@ -679,7 +679,7 @@ class HitAdapter extends AbstractEntityAdapter
             $parameters[] = new Parameter('entity_name', $entityName, ParameterType::STRING);
             // The site page name may have changed, etc., so the most important
             // for stats is the url.
-            if (in_array($entityName, ['items', 'item_sets', 'media'])) {
+            if (in_array($entityName, ['items', 'item_sets', 'media', 'digital_objects'])) {
                 $qb
                     ->andWhere($expr->eq('omeka_root.entityId', ':entity_id'))
                 ;
