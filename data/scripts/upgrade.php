@@ -130,7 +130,7 @@ if ($moduleTrustedProxies !== null) {
 if (version_compare($oldVersion, '3.4.16', '<')) {
     // Keep the values set during a previous partial upgrade.
     if ($settings->get('analytics_deduplication_minutes') === null) {
-        $settings->set('analytics_deduplication_minutes', \Analytics\Api\Adapter\HitAdapter::DEDUPLICATION_MINUTES);
+        $settings->set('analytics_deduplication_minutes', 30);
     }
     if ($settings->get('analytics_segments') === null) {
         $settings->set('analytics_segments', false);
@@ -166,6 +166,7 @@ if (version_compare($oldVersion, '3.4.16', '<')) {
         }
     }
 
+    require_once dirname(__DIR__, 2) . '/src/Stdlib/BotCounter.php';
     (new \Analytics\Stdlib\BotCounter($connection))->createTable();
 
     $sql = <<<'SQL'
@@ -186,7 +187,7 @@ if (version_compare($oldVersion, '3.4.16', '<')) {
 
     $message = new PsrMessage(
         'The hits of files are now deduplicated: the probe, the ranges of an audio or video file, the preload of a player and the replays by the same visitor (same ip, user agent and language) within {minutes} minutes count as a single hit. Head requests and requests of regions of images (tiles) are no longer counted: the view of an image is its info.json. A new option allows to aggregate the requested zones of the images and the played parts of the audio and video files, as a heat map.', // @translate
-        ['minutes' => \Analytics\Api\Adapter\HitAdapter::DEDUPLICATION_MINUTES]
+        ['minutes' => 30]
     );
     $messenger->addSuccess($message);
 
