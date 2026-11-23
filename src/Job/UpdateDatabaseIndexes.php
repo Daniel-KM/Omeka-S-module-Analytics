@@ -84,11 +84,12 @@ class UpdateDatabaseIndexes extends AbstractJob
                     ));
                 } catch (\Throwable $e) {
                     // The old indexes are kept, since the queries need them.
-                    $logger->err(
+                    throw new \Common\Job\Exception\RuntimeException(
                         'Unable to add index `{index}` on table `{table}`: {message}', // @translate
-                        ['index' => $name, 'table' => $table, 'message' => $e->getMessage()]
+                        ['index' => $name, 'table' => $table, 'message' => $e->getMessage()],
+                        0,
+                        $e
                     );
-                    return;
                 }
                 $logger->notice(
                     'Index `{index}` added on table `{table}`.', // @translate
